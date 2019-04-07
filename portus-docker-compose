@@ -1,0 +1,46 @@
+Using https://www.objectif-libre.com/en/blog/2018/06/11/self-hosting-a-secure-docker-registry-with-portus/ as a guide
+
+dnsmasq container for cluster resolution:
+172.16.240.44  dhregistry.aba.com  dhregistry
+(Note that underscores in the name break docker when the hostname is a private registry)
+
+EDITOR=vi
+
+git clone https://github.com/SUSE/Portus.git /tmp/portus
+
+mv /tmp/portus/examples/compose ./portus
+
+cd portus && $EDITOR .env nginx/nginx.conf
+- Change MACHINE_FQDN=172.17.0.1 to MACHINE_FQDN=data-hub-registry.aba.com
+- Change server_name 172.17.0.1 to server_name data-hub-registry.aba.com
+
+rm docker-compose.* && wget https://gist.githubusercontent.com/Patazerty/d05652294d5874eddf192c9b633751ee/raw/6bf4ac6ba14192a1fe5c337494ab213200dd076e/docker-compose.yml
+
+echo "subjectAltName = DNS:dhregistry.aba.com" > extfile.cnf
+
+openssl genrsa -out secrets/rootca.key 2048 
+
+openssl req -x509 -new -nodes -key secrets/rootca.key -subj "/C=US/ST=CA/O=SUSE"  -sha256 -days 1024 -out secrets/rootca.crt
+
+openssl genrsa -out secrets/portus.key 2048
+
+openssl req -new -key secrets/portus.key -out secrets/portus.csr -subj "/C=US/ST=CA/O=SUSE/CN=dhregistry.aba.com"
+
+openssl x509 -req -in secrets/portus.csr -CA secrets/rootca.crt -extfile extfile.cnf -CAkey secrets/rootca.key -CAcreateserial  -out secrets/portus.crt -days 500 -sha256
+
+docker-compose up -d
+
+After docker-compose completes, browse to https://172.16.240.44
+- If browser is running on the same host as Portus, can use https://dhregistry.aba.com
+
+sudo vi /etc/docker/daemon.json
+- Add:
+{
+    "insecure-registries" : [ "dhregistry.aba.com:5000" ]
+}
+
+sudo systemctl restart docker.service
+docker-compose up -d
+- Must do this every time after docker.service starts
+
+
