@@ -11,8 +11,8 @@ git clone https://github.com/SUSE/Portus.git /tmp/portus
 mv /tmp/portus/examples/compose ./portus
 
 cd portus && $EDITOR .env nginx/nginx.conf
-- Change MACHINE_FQDN=172.17.0.1 to MACHINE_FQDN=data-hub-registry.aba.com
-- Change server_name 172.17.0.1 to server_name data-hub-registry.aba.com
+- Change MACHINE_FQDN=172.17.0.1 to MACHINE_FQDN=dhregistry.aba.com
+- Change server_name 172.17.0.1 to server_name dhregistry.aba.com
 
 rm docker-compose.* && wget https://gist.githubusercontent.com/Patazerty/d05652294d5874eddf192c9b633751ee/raw/6bf4ac6ba14192a1fe5c337494ab213200dd076e/docker-compose.yml
 
