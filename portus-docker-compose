@@ -29,7 +29,7 @@ openssl req -new -key secrets/portus.key -out secrets/portus.csr -subj "/C=US/ST
 
 openssl x509 -req -in secrets/portus.csr -CA secrets/rootca.crt -extfile extfile.cnf -CAkey secrets/rootca.key -CAcreateserial  -out secrets/portus.crt -days 500 -sha256
 
-The easiest way is to not use SSL for communicating with the registry:
+To not use SSL for communicating with the registry:
 sudo vi /etc/docker/daemon.json
 - Add:
 {
@@ -39,16 +39,20 @@ sudo vi /etc/docker/daemon.json
 sudo systemctl restart docker.service
 - Note: After configuring the sevice, must do `docker-compose up -d` every time after docker.service starts
 
+To use SSL for communicating to the registry:
+sudo cp -p secrets/rootca.crt /etc/pki/trust/anchors/dhregistry.aba.com-ca.crt  
+update-ca-certificates
+- Note: I didn't have to restart Docker, but I've heard that it is needed here.
+
 
 docker-compose up -d
 
 After docker-compose completes, browse to https://172.16.240.44
 - If browser is running on the same host as Portus, can use https://dhregistry.aba.com
 
-Tried, and failed, to use SSL with these commands:
-sudo mkdir -p /docker-data/registry/{data,ssl,config}
-sudo cp secrets/rootca.key /docker-data/registry/ssl/ca-key.pem
-sudo cp secrets/rootca.key /docker-data/registry/ssl/ca.pem
-sudo cp secrets/rootca.key /docker-data/registry/ssl/key.pem 
-sudo cp secrets/rootca.key /docker-data/registry/ssl/key.csr
-sudo cp secrets/rootca.key /docker-data/registry/ssl/cert.pem
+Create the Admin account and password
+Create the registry with any "Name" but with a Hostname of "dhregistry.aba.com:5000"
+
+Test logging into the registry:
+docker login dhregistry.aba.com:5000
+- Use the Admin username and password you created through the web page
