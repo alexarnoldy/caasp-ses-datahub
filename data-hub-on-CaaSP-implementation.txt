@@ -86,6 +86,64 @@ vrrp_instance VI_1 {
 docker run -it -d --restart=always --net=host --privileged -v /opt/docker-keepalived/keepalived.conf:/etc/keepalived/keepalived.conf     --name haproxy-keepalived     pelin/haproxy-keepalived
 
 
-Accept all nodes and 
+Accept all nodes and form cluster. 
+	Use master.aba.com as API endpoint
+	Use admin.aba.com as cluster management endpoint
+
+Wait for admin node to pickup new updates, then update admin and then rest of the cluster
+	CMD: watch kubectl get nodes -o wide
+		Best way to view progress of the update and determine if one node is causing problems
+
+
+After nodes are all updated, start preparing the cluster for Data Hub:
+
+Check the /etc/docker/daemon.json files before updating:
+docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube-master|kube-minion)' cmd.run "cat /etc/docker/daemon.json"
+
+Each node (except for the admin) should have:
+    {
+      "registries": [
+        {
+          "Prefix": "https://registry.suse.com"
+        },
+        {
+          "Prefix": "https://dhregistry.aba.com:5000"
+        }
+      ],
+      "iptables":false,
+      "log-level": "warn",
+      "log-driver": "json-file",
+      "log-opts": {
+        "max-size": "10m",
+        "max-file": "5"
+      }
+    }
+
+If not, need to copy that file to each node and restart docker
+
+
+The pod that executes the SAP Data Hub Pipeline Engine API server must be able to access the internet while building the container images requested by pipeline operators:
+
+docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(kube-master|kube-minion)' cmd.run "ping -c 2 google.com"
+
+
+Jumphost (the Installation host) must have kubectl and helm installed. Both can be taken from the SUSE-CaaSP-3.0-Pool repository. Take info from admin node to add the repo to the jumphost.
+
+sudo zypper in kubernetes-client
+sudo zypper in helm
+
+Copy the .kube/config file from the admin node to the jumphost. Change https://api.infra.caasp.local:6443 to https://master.aba.com:6443
+Copy all of the certificate files under /etc from admin node to jumphost
+Add the following to the .kube/config file:
+- context:
+    cluster: default-cluster
+    user: cluster-admin
+    namespace: data-hub
+  name: data-hub
+
+Before you can start deployment, you must initialize Helm, the Kubernetes package manager, and provide it with the respective roles and permissions within the Kubernetes cluster.
+
+kubectl create clusterrolebinding tiller --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+helm init --client-only --service-account tiller
 
 
