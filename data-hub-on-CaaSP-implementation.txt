@@ -146,4 +146,59 @@ Before you can start deployment, you must initialize Helm, the Kubernetes packag
 kubectl create clusterrolebinding tiller --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
 helm init --client-only --service-account tiller
 
+Create the data-hub namespace and use the data-hub configuration context:
+kubectl create namespace data-hub
+kubectl config use-context data-hub
+kubectl config get-contexts
+
+
+kubectl edit psp suse.caasp.psp.privileged
+Search for allowedHostPaths first to ensure it isn’t already set elsewhere in the file
+Add the following below and at the same indentation as “volumes:”
+
+  allowedHostPaths:
+  - pathPrefix: /
+
+Create  clusterrolebinding.yaml:
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: suse:caasp:psp:priviliged:default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: suse:caasp:psp:privileged
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: XXX
+- kind: ServiceAccount
+  name: vora-vsystem-XXX
+  namespace: XXX
+- kind: ServiceAccount
+  name: XXX-elasticsearch
+  namespace: XXX
+- kind: ServiceAccount
+  name: XXX-fluentd
+  namespace: XXX
+- kind: ServiceAccount
+  name: XXX-nodeexporter
+  namespace: XXX
+- kind: ServiceAccount
+  name: vora-vflow-server
+  namespace: XXX
+
+
+export NAMESPACE=data-hub && sed -i "s/XXX/${NAMESPACE}/g"  clusterrolebinding.yaml && kubectl apply -f clusterrolebinding.yaml
+
+Copy the /etc/ceph files from the SES admin node to the CaaSP admin node:
+admin:~ # scp 172.16.200.130:/etc/ceph/* /etc/ceph
+Then, copy them from the CaaSP admin node to the rest of the CaaSP cluster:
+admin:~ # for EE in 1 2 3 4; do scp /etc/ceph/* master$EE:/etc/ceph/; done
+admin:~ # for EE in 1 2 3 4; do scp /etc/ceph/* worker$EE:/etc/ceph/; done
+
+Verify all nodes can communicate with the CaaSP cluster:
+docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube-master|kube-minion)' cmd.run "ceph -s"
+
 
