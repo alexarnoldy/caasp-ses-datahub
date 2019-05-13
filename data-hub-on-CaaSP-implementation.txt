@@ -1,0 +1,91 @@
+This design is based on a very specific design. This design is intended for Proof of Concept, training and other non-production work. Various aspects of this design can be altered, however configuring below the minimum resource allocations for the cluster nodes greatly increases the risk of experiencing difficult to troubleshooting errors and failures, and the inability to satisfactorily complete the installation. 
+
+The success of the CaaSP and Data Hub installation relies highly on the diligence of the prepration work. Some important details that must be accomplished are:
+	* Configuration of a SES storage cluster that provides RBD service
+		* A minimum of 2TB of usable space
+		* The Rados Block Device service
+	* Configuration of a TLS enabled Portus container registry (currently via docker-compose, running on the jumphost)
+	* Configuration of a CaaSPv3 cluster with the following minimums:
+		* Four physical hosts, each provisioned with 32 logical CPUs, 64GB of memory, and 128GB of locally attached disk space
+
+		* One jumphost VM, provisioned with access to 4 logical CPUs, 8GB of memory, and 80GB of locally attached disk space
+		* One admin VM node, provisioned with access to 16 logical CPUs, 16GB of memory, and 80GB of locally attached disk space
+		* Three master VM nodes, each provisioned with access to 16 logical CPUs, 24GB of memory, and 80GB of locally attached disk space
+		* Four worker VM nodes, each provisioned with access to 16 logical CPUs, 32GB of memory, and 256GB of locallly attached disk space
+	* NOTE: It is recommended that the master and worker nodes be spread across the available physical nodes with one of each on each physical node. The admin node and jumphost would then be run on the node that doesn't have a master node.
+	* NOTE: The virtual machine's locally attached disk space can be stored in SES RBD images. In this case, it is recommended that the disk files for the virtual machines assigned to each physical node be stored on a single RBD image. This would result in four RBD images created in the SES cluster, one for each physical node.
+
+It is recommended that the following suggestions be observed when installing the CaaSP cluster:
+	* Do not input the hostname of a node when assigning the node IP address. Only input the node name and domain name while providing the DNS information
+
+
+Rough outline of steps:
+
+Prep physical nodes for SES
+Create an RBD image per host
+Map and mount RBD images
+Create VMs on RBD images
+Install Admin node through console
+	Set up primary route to public router
+	Secondary route to NAT router to the storage VLAN
+
+Install cluster nodes with autoyast
+	Set primary route to public router
+	After installation, scp /etc/sysconfig/network/routes from admin to all nodes, then reboot all nodes
+
+Verify that all nodes can ping google.com, admin.aba.com, 172.16.200.130
+
+ssh master1 mkdir -p /opt/docker-keepalived/
+Create /opt/docker-keepalived/keepalived.conf on master1:
+vrrp_instance VI_1 {
+    state MASTER                # keepalived state
+    interface eth0              # replace this with your interface
+    virtual_router_id 40        
+    priority 103
+    track_interface {
+        eth0                    # replace this with your interface
+    }
+    virtual_ipaddress {
+        172.16.240.52           # replace this with your virtual IP
+    }
+    nopreempt
+}
+
+ssh master2 mkdir -p /opt/docker-keepalived/
+Create /opt/docker-keepalived/keepalived.conf on master2:
+vrrp_instance VI_1 {
+    state BACKUP                # keepalived state
+    interface eth0              # replace this with your interface
+    virtual_router_id 40        
+    priority 102
+    track_interface {
+        eth0                    # replace this with your interface
+    }
+    virtual_ipaddress {
+        172.16.240.52           # replace this with your virtual IP
+    }
+    nopreempt
+}
+
+ssh master3 mkdir -p /opt/docker-keepalived/
+Create /opt/docker-keepalived/keepalived.conf on master3:
+vrrp_instance VI_1 {
+    state BACKUP                # keepalived state
+    interface eth0              # replace this with your interface
+    virtual_router_id 40        
+    priority 101
+    track_interface {
+        eth0                    # replace this with your interface
+    }
+    virtual_ipaddress {
+        172.16.240.52           # replace this with your virtual IP
+    }
+    nopreempt
+}
+
+docker run -it -d --restart=always --net=host --privileged -v /opt/docker-keepalived/keepalived.conf:/etc/keepalived/keepalived.conf     --name haproxy-keepalived     pelin/haproxy-keepalived
+
+
+Accept all nodes and 
+
+
