@@ -202,3 +202,58 @@ Verify all nodes can communicate with the CaaSP cluster:
 docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube-master|kube-minion)' cmd.run "ceph -s"
 
 
+Set up Ceph secrets and default storage class in K8s:
+Get the keys for data hub and admin users:
+admin:~ # ceph auth ls  | egrep -A1 "caasp01|admin"
+
+Encode keys (admin key as an example):
+admin:~ # echo -n "AQCliWtcAAAAABAAMRgUejj5FCG/bvLBpmKDUw==" | base64
+QVFDbGlXdGNBQUFBQUJBQU1SZ1Vlamo1RkNHL2J2TEJwbUtEVXc9PQ==
+
+Create secrets:
+
+admin@jumphost:~/data-hub-build> vi ceph-secret-admin.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ceph-secret-admin
+type: "kubernetes.io/rbd"
+data:
+  key: QVFDbGlXdGNBQUFBQUJBQU1SZ1Vlamo1RkNHL2J2TEJwbUtEVXc9PQ==
+
+admin@jumphost:~/data-hub-build> vi ceph-secret-caasp01-aba.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ceph-secret-caasp01-aba
+type: "kubernetes.io/rbd"
+data:
+  key: QVFCT2JKdGN1OGFnTmhBQVkvb2RUWUFvZ3Q5T2g1WFptdDJDSEE9PQ==
+
+admin@jumphost:~/data-hub-build> kubectl apply -n data-hub -f ceph-secret-caasp01-aba.yaml
+admin@jumphost:~/data-hub-build> kubectl apply -n data-hub -f ceph-secret-admin.yaml
+
+
+Create storage class and make it default:
+
+admin@jumphost:~/data-hub-build> vi ses-rbd-sc.yaml
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: ses-rbd-sc
+provisioner: kubernetes.io/rbd
+parameters:
+  monitors: 172.16.200.132:6789,172.16.200.133:6789,172.16.200.134:6789
+  adminId: admin
+  adminSecretName: ceph-secret-admin
+  adminSecretNamespace: data-hub
+  pool: caasp01-aba-pool
+  userId: caasp01-aba
+  userSecretName: ceph-secret-caasp01-aba
+
+admin@jumphost:~/data-hub-build> kubectl apply -n data-hub -f ses-rbd-sc.yaml
+admin@jumphost:~/data-hub-build> kubectl patch storageclass ses-rbd-sc -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+admin@jumphost:~/data-hub-build> kubectl get storageclass
+	Should show only one storage class and it is listed as (default)
+
+
