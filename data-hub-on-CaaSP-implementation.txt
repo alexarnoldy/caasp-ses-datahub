@@ -256,4 +256,27 @@ admin@jumphost:~/data-hub-build> kubectl patch storageclass ses-rbd-sc -p '{"met
 admin@jumphost:~/data-hub-build> kubectl get storageclass
 	Should show only one storage class and it is listed as (default)
 
+Test that a PVC can be created and bound:
+
+admin@jumphost:~/data-hub-build> vi test-pv-claim.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: test-pv-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+admin@jumphost:~/data-hub-build> kubectl apply -n data-hub -f test-pv-claim.yaml 
+admin@jumphost:~/data-hub-build> kubectl get pvc
+	After five to ten seconds, should show the PVC is bound
+admin@jumphost:~/data-hub-build> kubectl delete -n data-hub -f test-pv-claim.yaml 
+
+After deploying Portus, need to add it to Velum with its certificate (Need to include steps to deploy Portus)
+Test all nodes can push and pull to private registry: 
+
+admin:~ # docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube-master|kube-minion)' cmd.run "hostname && docker pull nginx:latest && docker tag nginx:latest dhregistry.aba.com:5000/nginx:latest && docker push dhregistry.aba.com:5000/nginx:latest && docker pull dhregistry.aba.com:5000/nginx:latest"
 
