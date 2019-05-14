@@ -276,7 +276,18 @@ admin@jumphost:~/data-hub-build> kubectl get pvc
 admin@jumphost:~/data-hub-build> kubectl delete -n data-hub -f test-pv-claim.yaml 
 
 After deploying Portus, need to add it to Velum with its certificate (Need to include steps to deploy Portus)
+Name: dhregistry.aba.com
+URL: https://dhregistry.aba.com:5000
+Certificate: (Copy in from the secrets directory in Portus)
+
+Add imagePullSecret to default service account in the data-hub namespace:
+
+admin:~ # kubectl create secret docker-registry dhregistry-secret --docker-server=dhregistry.aba.com:5000 --docker-username=admin --docker-password=suse4SOC --docker-email=admin@aba.com
+admin:~ # kubectl patch sa default -p '"imagePullSecrets": [{"name": "dhregistry-secret" }]'
+
 Test all nodes can push and pull to private registry: 
+
+Must manually do the first docker login:
 
 admin:~ # docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube-master|kube-minion)' cmd.run "hostname && docker pull nginx:latest && docker tag nginx:latest dhregistry.aba.com:5000/nginx:latest && docker push dhregistry.aba.com:5000/nginx:latest && docker pull dhregistry.aba.com:5000/nginx:latest"
 
