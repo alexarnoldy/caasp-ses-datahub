@@ -282,8 +282,8 @@ Certificate: (Copy in from the secrets directory in Portus)
 
 Add imagePullSecret to default service account in the data-hub namespace:
 
-admin:~ # kubectl create secret docker-registry dhregistry-secret --docker-server=dhregistry.aba.com:5000 --docker-username=admin --docker-password=suse4SOC --docker-email=admin@aba.com
-admin:~ # kubectl patch sa default -p '"imagePullSecrets": [{"name": "dhregistry-secret" }]'
+admin:~ # kubectl create secret docker-registry dhregistry-secret -n data-hub --docker-server=dhregistry.aba.com:5000 --docker-username=admin --docker-password=suse4SOC --docker-email=admin@aba.com
+admin:~ # kubectl patch sa default -n data-hub -p '"imagePullSecrets": [{"name": "dhregistry-secret" }]'
 
 Test all nodes can push and pull to private registry (Must do the first docker login manually): 
 docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(kube-master|kube-minion)' cmd.run "docker login dhregistry.aba.com:5000 -u admin -p suse4SOC"
@@ -299,11 +299,40 @@ From the jumphost:
 	Download the SAP Data Hub software from https://launchpad.support.sap.com/
 		Save to /dev/rbd/caasp01-aba-vms/data-hub
 
+If any master or worker nodes have less than 32GB, it is recommended to reboot each, in turn, before starting the installation to ensure they have the maximume amount of available memory for the installation.
+
 admin@jumphost:~> cd /mnt/caasp01-aba-vms/data-hub/SAPDataHub-2.4.83-Foundation/; docker login dhregistry.aba.com:5000 && 
 ./install.sh -e vora-cluster.components.dlog.replicationFactor="1" -e vora-cluster.components.dlog.standbyFactor="0" -e vora-context-deploy.secop.profile=notls  --image-pull-secret dhregistry-secret --pv-storage-class ses-rbd-sc --accept-license --namespace data-hub --registry dhregistry.aba.com:5000 --enable-checkpoint-store no
 
 	Add: --skip-preflight-checks if fails on helm version
-	Use master.aba.com as external access endpoint
+	Use master.aba.com as external Subject Alternative Name endpoint
+
+After installation completes, it will provide important information for accessing Data Hub. I.e.:
+############ Ports for external connectivity ############
+# vora-tx-coordinator-ext/tc port:                  31450
+# vora-tx-coordinator-ext/hana-wire port:           32692
+# vora-textanalysis/textanalysis port:              32196
+# vsystem/vsystem port:                             31273
+#########################################################
+
+#########################################################
+# System Tenant created:    "system"
+# System Tenant User:       "system"
+# Initial Tenant created:   "default"
+# Initial Tenant User:      "suse"
+# User for tx-coordinator:  "default\suse"
+#########################################################
+
+Import the Portus root CA into Data Hub:
+
+The root CA can be in .pem format (which is the same format but with a different suffix as .crt). It must be available on the system that is running the web browser used to access Data Hub.
+
+The SAP Data Hub Launchpad will be available at https://master.aba.com:31273
+Log into the default Tenant as user suse and the password provided during installation.
+
+Select Connection Management, Import
+
+
 
 
 
