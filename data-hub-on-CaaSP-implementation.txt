@@ -1,9 +1,13 @@
 This design is based on a very specific design. This design is intended for Proof of Concept, training and other non-production work. Various aspects of this design can be altered, however configuring below the minimum resource allocations for the cluster nodes greatly increases the risk of experiencing difficult to troubleshooting errors and failures, and the inability to satisfactorily complete the installation. 
 
 The success of the CaaSP and Data Hub installation relies highly on the diligence of the prepration work. Some important details that must be accomplished are:
-	* Configuration of a SES storage cluster that provides RBD service
+	* Configuration of a SES storage cluster that provides RBD and Rados Gateway services
 		* A minimum of 2TB of usable space
 		* The Rados Block Device service
+			* Use https://ceph.com/pgcalc/ to get the commands to get the appropriate PG numbers for the pools
+		* Pool configured for Rados Gateway but RGW node will be configured as a Docker container
+			* Use https://ceph.com/pgcalc/ to get the commands to create all RGW pools
+			* https://www.suse.com/documentation/ses-4/book_storage_admin/data/ceph_rgw_manual.html
 	* Configuration of a TLS enabled Portus container registry (currently via docker-compose, running on the jumphost)
 	* Configuration of a CaaSPv3 cluster with the following minimums:
 		* Four physical hosts, each provisioned with 32 logical CPUs, 64GB of memory, and 128GB of locally attached disk space
@@ -330,10 +334,36 @@ The root CA can be in .pem format (which is the same format but with a different
 The SAP Data Hub Launchpad will be available at https://master.aba.com:31273
 Log into the default Tenant as user suse and the password provided during installation.
 
-Select Connection Management, Import
+Select Connection Management -> Import, select certificate file and select Open
+
+If a node seems to be having problems, try draining it: kubectl drain <node> --delete-local-data --ignore-daemonsets
+If the pods restart correctly, uncordon the node: kubectl uncordon <node>
+
+Launch SAP HANA Express Docker container:
+ 
+Host or VM must have lots of memory available (First deploy consumped about  9GB )
+
+Add the following to /etc/sysctl.conf:
+## HANA Express settings:
+fs.file-max=20000000
+fs.aio-max-nr=262144
+vm.memory_failure_early_kill=1
+vm.max_map_count=135217728
+net.ipv4.ip_local_port_range=40000 60999
+
+Must be logged into docker.io from system: docker login
+
+Create /data/HANAExpress/passwd.json file:
+{
+  "master_password" : "suse4SOC"
+}
+
+sudo chown -R 12000:79 /data/HANAExpress
+sudo chmod 600  /data/HANAExpress/passwd.json
+
+docker pull store/saplabs/hanaexpress:2.00.036.00.20190223.1
+
+sudo docker run -d -p 39013:39013 -p 39017:39017 -p 39041-39045:39041-39045 -p 1128-1129:1128-1129 -p 59013-59014:59013-59014 -v /data/HANAExpress:/hana/mounts --ulimit nofile=1048576:1048576 --sysctl kernel.shmmax=1073741824 --sysctl net.ipv4.ip_local_port_range='40000 60999' --sysctl kernel.shmmni=524288 --sysctl kernel.shmall=8388608 --name HXE store/saplabs/hanaexpress:2.00.036.00.20190223.1 --passwords-url file:///hana/mounts/passwd.json --agree-to-sap-license
 
 
-
-
-
-
+##### Need to test pulling   dhregistry.aba.com:5000/com.sap.hana.container/base-opensuse42.3-amd64   on nodes with smaller boot drives
