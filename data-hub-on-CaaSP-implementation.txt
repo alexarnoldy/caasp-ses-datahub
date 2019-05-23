@@ -2,6 +2,7 @@ This design is based on a very specific design. This design is intended for Proo
 
 The success of the CaaSP and Data Hub installation relies highly on the diligence of the prepration work. Some important details that must be accomplished are:
 	* Configuration of a SES storage cluster that provides RBD and Rados Gateway services
+		* DNS service configured with resolution for physical nodes as well as all CaaSP nodes
 		* A minimum of 2TB of usable space
 		* The Rados Block Device service
 			* Use https://ceph.com/pgcalc/ to get the commands to get the appropriate PG numbers for the pools
@@ -37,7 +38,7 @@ Install cluster nodes with autoyast
 	Set primary route to public router
 	After installation, scp /etc/sysconfig/network/routes from admin to all nodes, then reboot all nodes
 
-Verify that all nodes can ping google.com, admin.aba.com, 172.16.200.130
+Verify that all nodes can ping google.com, admin.example.com, 172.16.200.130
 
 ssh master1 mkdir -p /opt/docker-keepalived/
 Create /opt/docker-keepalived/keepalived.conf on master1:
@@ -91,8 +92,8 @@ docker run -it -d --restart=always --net=host --privileged -v /opt/docker-keepal
 
 
 Accept all nodes and form cluster. 
-	Use master.aba.com as API endpoint
-	Use admin.aba.com as cluster management endpoint
+	Use master.example.com as API endpoint
+	Use admin.example.com as cluster management endpoint
 
 Wait for admin node to pickup new updates, then update admin and then rest of the cluster
 	CMD: watch kubectl get nodes -o wide
@@ -111,7 +112,7 @@ Each node (except for the admin) should have:
           "Prefix": "https://registry.suse.com"
         },
         {
-          "Prefix": "https://dhregistry.aba.com:5000"
+          "Prefix": "https://dhregistry.example.com:5000"
         }
       ],
       "iptables":false,
@@ -136,7 +137,7 @@ Jumphost (the Installation host) must have kubectl and helm installed. Both can 
 sudo zypper in kubernetes-client
 sudo zypper in helm
 
-Copy the .kube/config file from the admin node to the jumphost. Change https://api.infra.caasp.local:6443 to https://master.aba.com:6443
+Copy the .kube/config file from the admin node to the jumphost. Change https://api.infra.caasp.local:6443 to https://master.example.com:6443
 Copy all of the certificate files under /etc from admin node to jumphost
 Add the following to the .kube/config file:
 - context:
@@ -280,19 +281,19 @@ admin@jumphost:~/data-hub-build> kubectl get pvc
 admin@jumphost:~/data-hub-build> kubectl delete -n data-hub -f test-pv-claim.yaml 
 
 After deploying Portus, need to add it to Velum with its certificate (Need to include steps to deploy Portus)
-Name: dhregistry.aba.com
-URL: https://dhregistry.aba.com:5000
+Name: dhregistry.example.com
+URL: https://dhregistry.example.com:5000
 Certificate: (Copy in from the secrets directory in Portus)
 
 Add imagePullSecret to default service account in the data-hub namespace:
 
-admin:~ # kubectl create secret docker-registry dhregistry-secret -n data-hub --docker-server=dhregistry.aba.com:5000 --docker-username=admin --docker-password=suse4SOC --docker-email=admin@aba.com
+admin:~ # kubectl create secret docker-registry dhregistry-secret -n data-hub --docker-server=dhregistry.example.com:5000 --docker-username=admin --docker-password=suse4SOC --docker-email=admin@example.com
 admin:~ # kubectl patch sa default -n data-hub -p '"imagePullSecrets": [{"name": "dhregistry-secret" }]'
 
 Test all nodes can push and pull to private registry (Must do the first docker login manually): 
-docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(kube-master|kube-minion)' cmd.run "docker login dhregistry.aba.com:5000 -u admin -p suse4SOC"
+docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(kube-master|kube-minion)' cmd.run "docker login dhregistry.example.com:5000 -u admin -p suse4SOC"
 
-admin:~ # docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(kube-master|kube-minion)' cmd.run "hostname && docker pull nginx:latest && docker tag nginx:latest dhregistry.aba.com:5000/nginx:latest && docker push dhregistry.aba.com:5000/nginx:latest && docker pull dhregistry.aba.com:5000/nginx:latest"
+admin:~ # docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(kube-master|kube-minion)' cmd.run "hostname && docker pull nginx:latest && docker tag nginx:latest dhregistry.example.com:5000/nginx:latest && docker push dhregistry.example.com:5000/nginx:latest && docker pull dhregistry.example.com:5000/nginx:latest"
 
 
 From the jumphost: 
@@ -305,11 +306,11 @@ From the jumphost:
 
 If any master or worker nodes have less than 32GB, it is recommended to reboot each, in turn, before starting the installation to ensure they have the maximume amount of available memory for the installation.
 
-admin@jumphost:~> cd /mnt/caasp01-aba-vms/data-hub/SAPDataHub-2.4.83-Foundation/; docker login dhregistry.aba.com:5000 && 
-./install.sh -e vora-cluster.components.dlog.replicationFactor="1" -e vora-cluster.components.dlog.standbyFactor="0" -e vora-context-deploy.secop.profile=notls  --image-pull-secret dhregistry-secret --pv-storage-class ses-rbd-sc --accept-license --namespace data-hub --registry dhregistry.aba.com:5000 --enable-checkpoint-store no
+admin@jumphost:~> cd /mnt/caasp01-aba-vms/data-hub/SAPDataHub-2.4.83-Foundation/; docker login dhregistry.example.com:5000 && 
+./install.sh -e vora-cluster.components.dlog.replicationFactor="1" -e vora-cluster.components.dlog.standbyFactor="0" -e vora-context-deploy.secop.profile=notls  --image-pull-secret dhregistry-secret --pv-storage-class ses-rbd-sc --accept-license --namespace data-hub --registry dhregistry.example.com:5000 --enable-checkpoint-store no
 
 	Add: --skip-preflight-checks if fails on helm version
-	Use master.aba.com as external Subject Alternative Name endpoint
+	Use master.example.com as external Subject Alternative Name endpoint
 
 After installation completes, it will provide important information for accessing Data Hub. I.e.:
 ############ Ports for external connectivity ############
@@ -331,7 +332,7 @@ Import the Portus root CA into Data Hub:
 
 The root CA can be in .pem format (which is the same format but with a different suffix as .crt). It must be available on the system that is running the web browser used to access Data Hub.
 
-The SAP Data Hub Launchpad will be available at https://master.aba.com:31273
+The SAP Data Hub Launchpad will be available at https://master.example.com:31273
 Log into the default Tenant as user suse and the password provided during installation.
 
 Select Connection Management -> Import, select certificate file and select Open
@@ -366,4 +367,5 @@ docker pull store/saplabs/hanaexpress:2.00.036.00.20190223.1
 sudo docker run -d -p 39013:39013 -p 39017:39017 -p 39041-39045:39041-39045 -p 1128-1129:1128-1129 -p 59013-59014:59013-59014 -v /data/HANAExpress:/hana/mounts --ulimit nofile=1048576:1048576 --sysctl kernel.shmmax=1073741824 --sysctl net.ipv4.ip_local_port_range='40000 60999' --sysctl kernel.shmmni=524288 --sysctl kernel.shmall=8388608 --name HXE store/saplabs/hanaexpress:2.00.036.00.20190223.1 --passwords-url file:///hana/mounts/passwd.json --agree-to-sap-license
 
 
-##### Need to test pulling   dhregistry.aba.com:5000/com.sap.hana.container/base-opensuse42.3-amd64   on nodes with smaller boot drives
+##### Need to test pulling   dhregistry.example.com:5000/com.sap.hana.container/base-opensuse42.3-amd64   on nodes with smaller boot drives
+// vim: set syntax=asciidoc:
