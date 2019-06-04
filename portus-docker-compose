@@ -1,7 +1,7 @@
 Using https://www.objectif-libre.com/en/blog/2018/06/11/self-hosting-a-secure-docker-registry-with-portus/ as a guide
 
 dnsmasq container for cluster resolution:
-172.16.240.44  dhregistry.aba.com  dhregistry
+172.16.240.44  dhregistry.example.com  dhregistry
 (Note that underscores in the name break docker when the hostname is a private registry)
 
 EDITOR=vi
@@ -11,13 +11,13 @@ git clone https://github.com/SUSE/Portus.git /tmp/portus
 mv /tmp/portus/examples/compose ./portus
 
 cd portus && $EDITOR .env nginx/nginx.conf
-- Change MACHINE_FQDN=172.17.0.1 to MACHINE_FQDN=dhregistry.aba.com
-- Change server_name 172.17.0.1 to server_name dhregistry.aba.com
+- Change MACHINE_FQDN=172.17.0.1 to MACHINE_FQDN=dhregistry.example.com
+- Change server_name 172.17.0.1 to server_name dhregistry.example.com
 
 rm docker-compose.* && wget https://gist.githubusercontent.com/Patazerty/d05652294d5874eddf192c9b633751ee/raw/6bf4ac6ba14192a1fe5c337494ab213200dd076e/docker-compose.yml
 
 
-echo "subjectAltName = DNS:dhregistry.aba.com" > extfile.cnf
+echo "subjectAltName = DNS:dhregistry.example.com" > extfile.cnf
 
 openssl genrsa -out secrets/rootca.key 2048 
 
@@ -25,7 +25,7 @@ openssl req -x509 -new -nodes -key secrets/rootca.key -subj "/C=US/ST=CA/O=SUSE"
 
 openssl genrsa -out secrets/portus.key 2048
 
-openssl req -new -key secrets/portus.key -out secrets/portus.csr -subj "/C=US/ST=CA/O=SUSE/CN=dhregistry.aba.com"
+openssl req -new -key secrets/portus.key -out secrets/portus.csr -subj "/C=US/ST=CA/O=SUSE/CN=dhregistry.example.com"
 
 openssl x509 -req -in secrets/portus.csr -CA secrets/rootca.crt -extfile extfile.cnf -CAkey secrets/rootca.key -CAcreateserial  -out secrets/portus.crt -days 500 -sha256
 
@@ -33,14 +33,14 @@ To not use SSL for communicating with the registry:
 sudo vi /etc/docker/daemon.json
 - Add:
 {
-    "insecure-registries" : [ "dhregistry.aba.com:5000" ]
+    "insecure-registries" : [ "dhregistry.example.com:5000" ]
 }
 
 sudo systemctl restart docker.service
 - Note: After configuring the sevice, must do `docker-compose up -d` every time after docker.service starts
 
 To use SSL for communicating to the registry:
-sudo cp -p secrets/rootca.crt /etc/pki/trust/anchors/dhregistry.aba.com-ca.crt  
+sudo cp -p secrets/rootca.crt /etc/pki/trust/anchors/dhregistry.example.com-ca.crt  
 update-ca-certificates
 - Note: I didn't have to restart Docker, but I've heard that it is needed here.
 
@@ -48,11 +48,11 @@ update-ca-certificates
 docker-compose up -d
 
 After docker-compose completes, browse to https://172.16.240.44
-- If browser is running on the same host as Portus, can use https://dhregistry.aba.com
+- If browser is running on the same host as Portus, can use https://dhregistry.example.com
 
 Create the Admin account and password
-Create the registry with any "Name" but with a Hostname of "dhregistry.aba.com:5000"
+Create the registry with any "Name" but with a Hostname of "dhregistry.example.com:5000"
 
 Test logging into the registry:
-docker login dhregistry.aba.com:5000
+docker login dhregistry.example.com:5000
 - Use the Admin username and password you created through the web page
