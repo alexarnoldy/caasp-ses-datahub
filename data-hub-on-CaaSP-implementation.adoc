@@ -152,10 +152,35 @@ Before you can start deployment, you must initialize Helm, the Kubernetes packag
 kubectl create clusterrolebinding tiller --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
 helm init --client-only --service-account tiller
 
+After deploying Portus, need to add it to Velum with its certificate (Need to include steps to deploy Portus)
+Name: dhregistry.example.com
+URL: https://dhregistry.example.com:5000
+Certificate: (Copy in from the secrets directory in Portus)
+
 Create the data-hub namespace and use the data-hub configuration context:
 kubectl create namespace data-hub
 kubectl config use-context data-hub
 kubectl config get-contexts
+
+Add imagePullSecret to default service account in the data-hub namespace:
+
+admin:~ # kubectl create secret docker-registry dhregistry-secret -n data-hub --docker-server=dhregistry.example.com:5000 --docker-username=admin --docker-password='SUSE$k8s' --docker-email=admin@example.com
+admin:~ # kubectl patch sa default -n data-hub -p '"imagePullSecrets": [{"name": "dhregistry-secret" }]'
+
+Test all nodes can pull from the private registry:
+admin:~ # docker pull nginx:latest
+admin:~ # docker tag nginx:latest dhregistry.example.com:5000/nginx:latest
+admin:~ # docker login dhregistry.example.com:5000
+admin:~ # docker push dhregistry.example.com:5000/nginx:latest
+admin:~ # kubectl run nginx-test --image=dhregistry.example.com:5000/nginx --replicas=3
+
+
+### Doesn't seem to work. Possibly due to the special character in the password
+#docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(kube-master|kube-minion)' cmd.run "docker login dhregistry.example.com:5000 -u admin -p 'SUSE$k8s'"
+
+### Likely isn't needed since having the imagePullSecret working should be enough
+#admin:~ # docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(kube-master|kube-minion)' cmd.run "hostname && docker pull nginx:latest && docker tag nginx:latest dhregistry.example.com:5000/nginx:latest && docker push dhregistry.example.com:5000/nginx:latest && docker pull dhregistry.example.com:5000/nginx:latest"
+
 
 
 kubectl edit psp suse.caasp.psp.privileged
@@ -198,7 +223,12 @@ subjects:
 
 export NAMESPACE=data-hub && sed -i "s/XXX/${NAMESPACE}/g"  clusterrolebinding.yaml && kubectl apply -f clusterrolebinding.yaml
 
+Create Ceph RBD pool and prepare CaaSP cluster to use it:
+
 Copy the /etc/ceph files from the SES admin node to the CaaSP admin node:
+######
+Want to try to not copy the files over to the cluster and see if k8s can still create/remove pvc's
+######
 admin:~ # scp 172.16.200.130:/etc/ceph/* /etc/ceph
 Then, copy them from the CaaSP admin node to the rest of the CaaSP cluster:
 admin:~ # for EE in 1 2 3 4; do scp /etc/ceph/* master$EE:/etc/ceph/; done
@@ -210,7 +240,7 @@ docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube
 
 Set up Ceph secrets and default storage class in K8s:
 Get the keys for data hub and admin users:
-admin:~ # ceph auth ls  | egrep -A1 "caasp01|admin"
+admin:~ # ceph auth ls  | egrep -A1 "data-hub-demo|admin"
 
 Encode keys (admin key as an example):
 admin:~ # echo -n "AQCliWtcAAAAABAAMRgUejj5FCG/bvLBpmKDUw==" | base64
@@ -223,18 +253,20 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: ceph-secret-admin
+  namespace: data-hub
 type: "kubernetes.io/rbd"
 data:
   key: QVFDbGlXdGNBQUFBQUJBQU1SZ1Vlamo1RkNHL2J2TEJwbUtEVXc9PQ==
 
-admin@jumphost:~/data-hub-build> vi ceph-secret-caasp01-aba.yaml
+admin@jumphost:~/data-hub-build> vi ceph-secret-data-hub-demo.yaml
 apiVersion: v1
 kind: Secret
 metadata:
-  name: ceph-secret-caasp01-aba
+  name: ceph-secret-data-hub-demo
+  namespace: data-hub
 type: "kubernetes.io/rbd"
 data:
-  key: QVFCT2JKdGN1OGFnTmhBQVkvb2RUWUFvZ3Q5T2g1WFptdDJDSEE9PQ==
+  key: QVFDUU12WmN4VjV2RXhBQUVoekU5MWt3YmlHNmF0dzVPYUU0WUE9PQ==
 
 admin@jumphost:~/data-hub-build> kubectl apply -n data-hub -f ceph-secret-caasp01-aba.yaml
 admin@jumphost:~/data-hub-build> kubectl apply -n data-hub -f ceph-secret-admin.yaml
@@ -253,9 +285,9 @@ parameters:
   adminId: admin
   adminSecretName: ceph-secret-admin
   adminSecretNamespace: data-hub
-  pool: caasp01-aba-pool
-  userId: caasp01-aba
-  userSecretName: ceph-secret-caasp01-aba
+  pool: data-hub-demo-pool
+  userId: data-hub-demo
+  userSecretName: ceph-secret-data-hub-demo
 
 admin@jumphost:~/data-hub-build> kubectl apply -n data-hub -f ses-rbd-sc.yaml
 admin@jumphost:~/data-hub-build> kubectl patch storageclass ses-rbd-sc -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
@@ -274,27 +306,13 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: 100Gi
 
 admin@jumphost:~/data-hub-build> kubectl apply -n data-hub -f test-pv-claim.yaml 
 admin@jumphost:~/data-hub-build> kubectl get pvc
 	After five to ten seconds, should show the PVC is bound
 admin@jumphost:~/data-hub-build> kubectl delete -n data-hub -f test-pv-claim.yaml 
 
-After deploying Portus, need to add it to Velum with its certificate (Need to include steps to deploy Portus)
-Name: dhregistry.example.com
-URL: https://dhregistry.example.com:5000
-Certificate: (Copy in from the secrets directory in Portus)
-
-Add imagePullSecret to default service account in the data-hub namespace:
-
-admin:~ # kubectl create secret docker-registry dhregistry-secret -n data-hub --docker-server=dhregistry.example.com:5000 --docker-username=admin --docker-password=suse4SOC --docker-email=admin@example.com
-admin:~ # kubectl patch sa default -n data-hub -p '"imagePullSecrets": [{"name": "dhregistry-secret" }]'
-
-Test all nodes can push and pull to private registry (Must do the first docker login manually): 
-docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(kube-master|kube-minion)' cmd.run "docker login dhregistry.example.com:5000 -u admin -p suse4SOC"
-
-admin:~ # docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(kube-master|kube-minion)' cmd.run "hostname && docker pull nginx:latest && docker tag nginx:latest dhregistry.example.com:5000/nginx:latest && docker push dhregistry.example.com:5000/nginx:latest && docker pull dhregistry.example.com:5000/nginx:latest"
 
 
 From the jumphost: 
@@ -357,7 +375,7 @@ Must be logged into docker.io from system: docker login
 
 Create /data/HANAExpress/passwd.json file:
 {
-  "master_password" : "suse4SOC"
+  "master_password" : "SUSE$k8s"
 }
 
 sudo chown -R 12000:79 /data/HANAExpress
