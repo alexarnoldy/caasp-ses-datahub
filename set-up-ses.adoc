@@ -1,0 +1,238 @@
+Notes for setting up SES storage for CaaSP
+
+Bryan’s guide: https://github.com/bwgartner/suse-doc/blob/master/BP/CaaSPlatform-SES/HPE/integration.adoc
+Shows setting up SES things on the SES cluster 
+I had lots of problems until I copied these files to all of the CaaSP nodes (including the admin):
+/etc/ceph/ceph.client.admin.keyring
+/etc/ceph/ceph.client.data-hub-demo.keyring
+/etc/ceph/ceph.conf
+and ran systemctl start rbdmap.service on all nodes
+
+I prefer setting up the admin node to work with the SES cluster and then create everything from there
+Need /etc/ceph/ceph.conf and /etc/ceph/ceph.client.admin.keyring
+ceph-common must be installed
+This is a great way to validate that the CaaSP cluster can communicate with the SES cluster
+One potential problem could have been because I used Outlook to save the user and admin keys, then copied them from there.
+Better to keep everything in ASCII text, i.e. save in a /tmp/ file
+Useful Ceph commands:
+ceph auth ls
+ceph osd pool ls
+ceph osd dump | less
+Can see how many replicas and PG’s per pool
+ceph osd pool application get <pool name>
+rbd -p <pool name>  ls
+rbd -p <pool name> rm <volume name>
+
+***Troubleshooting Tip:
+Before upgrading the cluster (or possibly even bootstrapping, but haven’t checked this), run this command on the admin node: docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube-master|kube-minion)' cmd.run "hostname"
+If it doesn’t come back clean, it should show an error below one or more of the minion’s keys
+Verify that all of the nodes that are actually configured in the cluster returned cleanly
+If all nodes in the cluster returned correctly, the offending keys are likely left over from something that failed during bootstrap or while adding nodes
+Remove the key with this command: docker exec -it $(docker ps --filter=name=salt-master -q) salt-key -d  <key>
+Verify again with the hostname command. Once it comes back quickly and clean, go ahead and try to upgrade the cluster
+In the case where a minion key is in both accepted and rejected|denied:
+docker exec -it $(docker ps --filter=name=salt-master -q) salt-key
+docker exec -it $(docker ps --filter=name=salt-master -q) sh
+Workaround:Move the key from the minions_denied folder to minions, overwriting the accepted key with the denied one. I.e.
+mv /etc/salt/pki/master/minions_denied/<minion salt-key> /etc/salt/pki/master/minions/
+
+To reboot entire cluster via Salt:
+docker exec -ti $(docker ps -q --filter name=salt-master) salt -P "roles:(admin|kube-(master|minion))" file.replace /etc/salt/grains pattern='tx_update_reboot_needed.*' repl='tx_update_reboot_needed: true'
+append_if_not_found=true
+ 
+docker exec -ti $(docker ps -q --filter name=salt-master) salt --force-color '*' saltutil.sync_all
+ 
+
+
+I couldn’t communicate with the SES cluster from CaaSP. To remedy I added a NAT router with connections into both VLANs, then updated all of the nodes to use that as their gateway:
+docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube-master|kube-minion)' cmd.run "sed -i s/172.16.240.1/172.16.240.50/ /etc/sysconfig/network/routes"
+
+docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube-master|kube-minion)' cmd.run "cat /etc/sysconfig/network/routes"
+
+docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube-master|kube-minion)' cmd.run "systemctl restart network.service"
+
+Also noticed that the rbdmap service was not running, so enabled it:
+docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube-master|kube-minion)' cmd.run "systemctl status rbdmap.service"
+
+docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube-master|kube-minion)' cmd.run "systemctl start rbdmap.service"
+
+docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube-master|kube-minion)' cmd.run "systemctl enable rbdmap.service"
+
+docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube-master|kube-minion)' cmd.run "systemctl status rbdmap.service"
+
+
+
+Used this procedure to test the ability to create an RBD volume (from CaaSP admin), allocate a PV to it, bind a PVC to that, then consume the PVC in a pod:
+
+
+Create the pool and enable RBD support (use ceph osd calculator to get CephPGSize)
+export CephPool="data-hub-demo-pool" CephPGSize="16"
+ceph osd pool create ${CephPool} ${CephPGSize}
+ceph osd pool ls
+ceph osd pool application enable ${CephPool} rbd
+ceph osd pool application get ${CephPool}
+
+
+Create the user that will manage the pool 
+export CephUser="data-hub-demo" CephPool="data-hub-demo-pool"
+ceph auth get-or-create client.${CephUser} mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${CephPool}' -o ceph.client.${CephUser}.keyring
+
+
+Create the 1G volume
+rbd create -s 1G data-hub-demo-pool/manual-volume
+
+Save the admin’s client key
+ceph auth get-key client.admin | base64
+
+Save the user’s client key
+export CephUser="data-hub-demo"
+ceph auth get-key client.${CephUser} | base64
+
+
+Create the PV that references the RBD volume
+kubectl apply -f - << *EOF*
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: manual-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  rbd:
+    monitors:
+    - 172.16.200.132:6789
+    - 172.16.200.133:6789
+    - 172.16.200.134:6789
+    pool: data-hub-demo-pool
+    image: manual-volume
+    user: data-hub-demo
+    secretRef:
+      name: ceph-secret-data-hub-demo
+    fsType: ext4
+    readOnly: false
+*EOF*
+
+Create the PVC for 1Gi
+kubectl apply -f - << *EOF*
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: manual-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+*EOF*
+
+Create an Alpine Linux pod to consume the PVC
+kubectl apply -f - <<*EOF*
+apiVersion: v1
+kind: Pod
+metadata:
+  name: manual-pod
+spec:
+  containers:
+  - name: alpine
+    image: alpine
+    command: ["sleep","3600"]
+    volumeMounts:
+    - mountPath: /mnt/rbdvol
+      name: rbdvol
+  volumes:
+  - name: rbdvol
+    persistentVolumeClaim:
+      claimName: manual-pvc
+*EOF*
+
+Exec into the pod to verify the volume is mounted
+kubectl exec -it manual-pod -- sh
+mount | grep rbd
+
+
+Required commands and Manifests:
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ceph-secret-admin
+type: "kubernetes.io/rbd"
+data:
+  key: QVFDbGlXdGNBQUFBQUJBQU1SZ1Vlamo1RkNHL2J2TEJwbUtEVXc9PQ==
+
+key is encoded base64
+Use -n to place in the appropriate namespace
+======================
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ceph-secret-data-hub-demo
+type: "kubernetes.io/rbd"
+data:
+  key: QVFDUU12WmN4VjV2RXhBQUVoekU5MWt3YmlHNmF0dzVPYUU0WUE9PQ==
+
+key is encoded base64
+Use -n to place in the appropriate namespace
+======================
+
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: ses-rbd-sc
+provisioner: kubernetes.io/rbd
+parameters:
+  monitors: 172.16.200.132:6789,172.16.200.133:6789,172.16.200.134:6789
+  adminId: admin
+  adminSecretName: ceph-secret-admin
+  adminSecretNamespace: <namespace>
+  pool: data-hub-demo-pool
+  userId: data-hub-demo
+  userSecretName: ceph-secret-data-hub-demo
+
+Change the adminSecretNamespace to the appropriate one
+Set the default storageclass:
+kubectl patch storageclass ses-rbd-sc -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+======================
+
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: test-pv-claim
+spec:
+  storageClassName: ses-rbd-sc
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+Use -n to place in the appropriate namespace, or set the default security-context for kubectl
+======================
+
+kind: Pod
+apiVersion: v1
+metadata:
+  name: task-pv-pod
+spec:
+  volumes:
+    - name: task-pv-storage
+      persistentVolumeClaim:
+       claimName: test-pv-claim
+  containers:
+    - name: task-pv-container
+      image: nginx
+      ports:
+        - containerPort: 80
+          name: "http-server"
+      volumeMounts:
+        - mountPath: "/tmp"
+          name: task-pv-storage
+
+Use -n to place in the appropriate namespace, or set the default security-context for kubectl
+
+
+
+
