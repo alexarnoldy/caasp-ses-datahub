@@ -132,6 +132,9 @@ The pod that executes the SAP Data Hub Pipeline Engine API server must be able t
 
 docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(kube-master|kube-minion)' cmd.run "ping -c 2 google.com"
 
+####
+## Seems like need to scp the /etc/ntp.conf file to all k8s nodes and then start && enable ntpd.service on them
+####
 
 Jumphost (the Installation host) must have kubectl and helm installed. Both can be taken from the SUSE-CaaSP-3.0-Pool repository. Take info from admin node to add the repo to the jumphost.
 
@@ -183,6 +186,113 @@ admin:~ # kubectl run nginx-test --image=dhregistry.example.com:5000/nginx --rep
 
 
 
+
+Create Ceph RBD pool and prepare CaaSP cluster to use it:
+
+scp 172.16.200.130:/etc/ceph/ceph.conf /etc/ceph/
+scp 172.16.200.130:/etc/ceph/ceph.client.data-hub-demo.keyring /etc/ceph/
+scp /etc/ceph/ceph* master1:/etc/ceph/
+for EE in 1 2 3; do scp /etc/ceph/ceph* worker$EE:/etc/ceph/; done
+
+######
+# Don't need to copy the files into the CaaSP cluster
+######
+#admin:~ # scp 172.16.200.130:/etc/ceph/* /etc/ceph
+#Then, copy them from the CaaSP admin node to the rest of the CaaSP cluster:
+#admin:~ # for EE in 1 2 3 4; do scp /etc/ceph/* master$EE:/etc/ceph/; done
+#admin:~ # for EE in 1 2 3 4; do scp /etc/ceph/* worker$EE:/etc/ceph/; done
+
+#Verify all nodes can communicate with the CaaSP cluster:
+#docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube-master|kube-minion)' cmd.run "ceph -s"
+
+Assumes user and pool have been created:
+
+Set up Ceph secrets and default storage class in K8s:
+On the SES admin node, get the keys for data hub and admin users:
+admin:~ # ceph auth ls  | egrep -A1 "data-hub-demo|admin"
+
+Encode keys (admin key as an example):
+admin:~ # echo -n "AQCliWtcAAAAABAAMRgUejj5FCG/bvLBpmKDUw==" | base64
+QVFDbGlXdGNBQUFBQUJBQU1SZ1Vlamo1RkNHL2J2TEJwbUtEVXc9PQ==
+
+Create secrets:
+
+admin@jumphost:~/data-hub-build> vi ceph-secret-admin.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ceph-secret-admin
+  namespace: data-hub
+type: "kubernetes.io/rbd"
+data:
+  key: QVFDbGlXdGNBQUFBQUJBQU1SZ1Vlamo1RkNHL2J2TEJwbUtEVXc9PQ==
+
+admin@jumphost:~/data-hub-build> vi ceph-secret-data-hub-demo.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ceph-secret-data-hub-demo
+  namespace: data-hub
+type: "kubernetes.io/rbd"
+data:
+  key: QVFDUU12WmN4VjV2RXhBQUVoekU5MWt3YmlHNmF0dzVPYUU0WUE9PQ==
+
+admin@jumphost:~/data-hub-build> kubectl apply -n data-hub -f ceph-secret-data-hub-demo.yaml
+admin@jumphost:~/data-hub-build> kubectl apply -n data-hub -f ceph-secret-admin.yaml
+
+
+Create storage class and make it default:
+
+admin@jumphost:~/data-hub-build> vi ses-rbd-sc.yaml
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: ses-rbd-sc
+provisioner: kubernetes.io/rbd
+parameters:
+  monitors: 172.16.200.132:6789,172.16.200.133:6789,172.16.200.134:6789
+  adminId: admin
+  adminSecretName: ceph-secret-admin
+  adminSecretNamespace: data-hub
+  pool: data-hub-demo-pool
+  userId: data-hub-demo
+  userSecretName: ceph-secret-data-hub-demo
+
+admin@jumphost:~/data-hub-build> kubectl apply -n data-hub -f ses-rbd-sc.yaml
+admin@jumphost:~/data-hub-build> kubectl patch storageclass ses-rbd-sc -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+admin@jumphost:~/data-hub-build> kubectl get storageclass
+	Should show only one storage class and it is listed as (default)
+
+Test that a PVC can be created and bound:
+
+admin@jumphost:~/data-hub-build> vi test-pvc.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: test-pvc
+  namespace: data-hub
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+
+admin@jumphost:~/data-hub-build> kubectl apply -n data-hub -f test-pvc.yaml 
+admin@jumphost:~/data-hub-build> kubectl get pvc
+	After five to ten seconds, should show the PVC is bound
+admin@jumphost:~/data-hub-build> kubectl delete -n data-hub -f test-pvc.yaml 
+
+
+
+From the jumphost: 
+	Add to /etc/ceph/rbdmap:
+	caasp01-aba-vms/data-hub        id=admin,keyring=/etc/ceph/ceph.client.admin.keyring
+	Add to /etc/fstab:
+	/dev/rbd/caasp01-aba-vms/data-hub       /mnt/caasp01-aba-vms/data-hub   ext4    noauto  0  0
+	Download the SAP Data Hub software from https://launchpad.support.sap.com/
+		Save to /dev/rbd/caasp01-aba-vms/data-hub
+
 kubectl edit psp suse.caasp.psp.privileged
 Search for allowedHostPaths first to ensure it isn’t already set elsewhere in the file
 Add the following below and at the same indentation as “volumes:”
@@ -222,106 +332,6 @@ subjects:
 
 
 export NAMESPACE=data-hub && sed -i "s/XXX/${NAMESPACE}/g"  clusterrolebinding.yaml && kubectl apply -f clusterrolebinding.yaml
-
-Create Ceph RBD pool and prepare CaaSP cluster to use it:
-
-Copy the /etc/ceph files from the SES admin node to the CaaSP admin node:
-######
-Want to try to not copy the files over to the cluster and see if k8s can still create/remove pvc's
-######
-admin:~ # scp 172.16.200.130:/etc/ceph/* /etc/ceph
-Then, copy them from the CaaSP admin node to the rest of the CaaSP cluster:
-admin:~ # for EE in 1 2 3 4; do scp /etc/ceph/* master$EE:/etc/ceph/; done
-admin:~ # for EE in 1 2 3 4; do scp /etc/ceph/* worker$EE:/etc/ceph/; done
-
-Verify all nodes can communicate with the CaaSP cluster:
-docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube-master|kube-minion)' cmd.run "ceph -s"
-
-
-Set up Ceph secrets and default storage class in K8s:
-Get the keys for data hub and admin users:
-admin:~ # ceph auth ls  | egrep -A1 "data-hub-demo|admin"
-
-Encode keys (admin key as an example):
-admin:~ # echo -n "AQCliWtcAAAAABAAMRgUejj5FCG/bvLBpmKDUw==" | base64
-QVFDbGlXdGNBQUFBQUJBQU1SZ1Vlamo1RkNHL2J2TEJwbUtEVXc9PQ==
-
-Create secrets:
-
-admin@jumphost:~/data-hub-build> vi ceph-secret-admin.yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: ceph-secret-admin
-  namespace: data-hub
-type: "kubernetes.io/rbd"
-data:
-  key: QVFDbGlXdGNBQUFBQUJBQU1SZ1Vlamo1RkNHL2J2TEJwbUtEVXc9PQ==
-
-admin@jumphost:~/data-hub-build> vi ceph-secret-data-hub-demo.yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: ceph-secret-data-hub-demo
-  namespace: data-hub
-type: "kubernetes.io/rbd"
-data:
-  key: QVFDUU12WmN4VjV2RXhBQUVoekU5MWt3YmlHNmF0dzVPYUU0WUE9PQ==
-
-admin@jumphost:~/data-hub-build> kubectl apply -n data-hub -f ceph-secret-caasp01-aba.yaml
-admin@jumphost:~/data-hub-build> kubectl apply -n data-hub -f ceph-secret-admin.yaml
-
-
-Create storage class and make it default:
-
-admin@jumphost:~/data-hub-build> vi ses-rbd-sc.yaml
-kind: StorageClass
-apiVersion: storage.k8s.io/v1
-metadata:
-  name: ses-rbd-sc
-provisioner: kubernetes.io/rbd
-parameters:
-  monitors: 172.16.200.132:6789,172.16.200.133:6789,172.16.200.134:6789
-  adminId: admin
-  adminSecretName: ceph-secret-admin
-  adminSecretNamespace: data-hub
-  pool: data-hub-demo-pool
-  userId: data-hub-demo
-  userSecretName: ceph-secret-data-hub-demo
-
-admin@jumphost:~/data-hub-build> kubectl apply -n data-hub -f ses-rbd-sc.yaml
-admin@jumphost:~/data-hub-build> kubectl patch storageclass ses-rbd-sc -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-admin@jumphost:~/data-hub-build> kubectl get storageclass
-	Should show only one storage class and it is listed as (default)
-
-Test that a PVC can be created and bound:
-
-admin@jumphost:~/data-hub-build> vi test-pv-claim.yaml
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: test-pv-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 100Gi
-
-admin@jumphost:~/data-hub-build> kubectl apply -n data-hub -f test-pv-claim.yaml 
-admin@jumphost:~/data-hub-build> kubectl get pvc
-	After five to ten seconds, should show the PVC is bound
-admin@jumphost:~/data-hub-build> kubectl delete -n data-hub -f test-pv-claim.yaml 
-
-
-
-From the jumphost: 
-	Add to /etc/ceph/rbdmap:
-	caasp01-aba-vms/data-hub        id=admin,keyring=/etc/ceph/ceph.client.admin.keyring
-	Add to /etc/fstab:
-	/dev/rbd/caasp01-aba-vms/data-hub       /mnt/caasp01-aba-vms/data-hub   ext4    noauto  0  0
-	Download the SAP Data Hub software from https://launchpad.support.sap.com/
-		Save to /dev/rbd/caasp01-aba-vms/data-hub
 
 If any master or worker nodes have less than 32GB, it is recommended to reboot each, in turn, before starting the installation to ensure they have the maximume amount of available memory for the installation.
 
