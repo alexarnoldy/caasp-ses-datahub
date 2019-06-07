@@ -189,11 +189,6 @@ admin:~ # kubectl run nginx-test --image=dhregistry.example.com:5000/nginx --rep
 
 Create Ceph RBD pool and prepare CaaSP cluster to use it:
 
-scp 172.16.200.130:/etc/ceph/ceph.conf /etc/ceph/
-scp 172.16.200.130:/etc/ceph/ceph.client.data-hub-demo.keyring /etc/ceph/
-scp /etc/ceph/ceph* master1:/etc/ceph/
-for EE in 1 2 3; do scp /etc/ceph/ceph* worker$EE:/etc/ceph/; done
-
 ######
 # Don't need to copy the files into the CaaSP cluster
 ######
@@ -248,6 +243,8 @@ kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
   name: ses-rbd-sc
+  annotations:
+     storageclass.beta.kubernetes.io/is-default-class: "true"
 provisioner: kubernetes.io/rbd
 parameters:
   monitors: 172.16.200.132:6789,172.16.200.133:6789,172.16.200.134:6789
