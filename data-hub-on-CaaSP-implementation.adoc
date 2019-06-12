@@ -41,57 +41,66 @@ TIP: The virtual machine's locally attached disk space can be stored in SES RBD 
 ** After installation, scp /etc/sysconfig/network/routes from admin to all nodes, then reboot all nodes
 ** Verify that all nodes can ping google.com, admin.example.com, 172.16.200.130
 
-ssh master1 mkdir -p /opt/docker-keepalived/
-Create /opt/docker-keepalived/keepalived.conf on master1:
+.Configure keepalived on the three master nodes:
+* Create the /opt/docker-keepalived/keepalived.conf file on master1:
+----
 vrrp_instance VI_1 {
-    state MASTER                # keepalived state
-    interface eth0              # replace this with your interface
+    state MASTER                
+    interface eth0              
     virtual_router_id 40        
     priority 103
     track_interface {
-        eth0                    # replace this with your interface
+        eth0                    
     }
     virtual_ipaddress {
         172.16.240.52           # replace this with your virtual IP
     }
     nopreempt
 }
+----
 
-ssh master2 mkdir -p /opt/docker-keepalived/
-Create /opt/docker-keepalived/keepalived.conf on master2:
+* Create the /opt/docker-keepalived/keepalived.conf file on master2:
+----
 vrrp_instance VI_1 {
-    state BACKUP                # keepalived state
-    interface eth0              # replace this with your interface
+    state BACKUP                
+    interface eth0              
     virtual_router_id 40        
     priority 102
     track_interface {
-        eth0                    # replace this with your interface
+        eth0                    
     }
     virtual_ipaddress {
         172.16.240.52           # replace this with your virtual IP
     }
     nopreempt
 }
+----
 
-ssh master3 mkdir -p /opt/docker-keepalived/
-Create /opt/docker-keepalived/keepalived.conf on master3:
+* Create the /opt/docker-keepalived/keepalived.conf file on master3:
+----
 vrrp_instance VI_1 {
-    state BACKUP                # keepalived state
-    interface eth0              # replace this with your interface
+    state BACKUP                
+    interface eth0              
     virtual_router_id 40        
     priority 101
     track_interface {
-        eth0                    # replace this with your interface
+        eth0                    
     }
     virtual_ipaddress {
         172.16.240.52           # replace this with your virtual IP
     }
     nopreempt
 }
+----
 
-docker run -it -d --restart=always --net=host --privileged -v /opt/docker-keepalived/keepalived.conf:/etc/keepalived/keepalived.conf     --name haproxy-keepalived     pelin/haproxy-keepalived
+* Run this command on each master node:
+----
+docker run -it -d --restart=always --net=host --privileged -v /opt/docker-keepalived/keepalived.conf:/etc/keepalived/keepalived.conf     --name haproxy-keepalived     susecaasp/caasp_keepalived:latest
+----
 
+You can test pinging the virtual IP address while rebooting the master nodes to verify proper keepalived operation
 
+.Form the CaaSP cluster:
 Accept all nodes and form cluster. 
 	Use master.example.com as API endpoint
 	Use admin.example.com as cluster management endpoint
