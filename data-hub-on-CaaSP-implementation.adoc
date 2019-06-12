@@ -23,11 +23,13 @@ TIP: It is recommended that the master and worker nodes be spread across the ava
 TIP: The virtual machine's locally attached disk space can be stored in SES RBD images. In this case, it is recommended that the disk files for the virtual machines assigned to each physical node be stored on a single RBD image. This would result in four RBD images created in the SES cluster, one for each physical node.
 
 .It is recommended that the following suggestions be observed when installing the CaaSP cluster:
-* Do not input the hostname of a node when assigning the node IP address. Only input the node name and domain name while providing the DNS information
+* Provide network configuration for each CaaSP node, including the Admin node, through the Installation bootloader. Carefully typing in the information into the bootloader allows for the most consistent network configurations.
+* Leverage AutoYaST when configuring the CaaSP cluster nodes for the easiest, most consistent cluster node installation.
 
 
 .Rough outline of steps:
-* Install physical nodes with SES
+* Install physical nodes with SLES15 SP1
+* Install physical nodes with SES 6
 * Create an RBD image per host
 * Map and mount RBD images
 * Create VMs on RBD images
