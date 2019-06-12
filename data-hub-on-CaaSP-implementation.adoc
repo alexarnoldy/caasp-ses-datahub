@@ -36,12 +36,10 @@ TIP: The virtual machine's locally attached disk space can be stored in SES RBD 
 * Install Admin node through console
 ** Set up primary route to public router
 ** Secondary route to NAT router to the storage VLAN
-
-Install cluster nodes with autoyast
-	Set primary route to public router
-	After installation, scp /etc/sysconfig/network/routes from admin to all nodes, then reboot all nodes
-
-Verify that all nodes can ping google.com, admin.example.com, 172.16.200.130
+* Install CaaSP cluster nodes with AutoYaST
+** Set primary route to public router
+** After installation, scp /etc/sysconfig/network/routes from admin to all nodes, then reboot all nodes
+** Verify that all nodes can ping google.com, admin.example.com, 172.16.200.130
 
 ssh master1 mkdir -p /opt/docker-keepalived/
 Create /opt/docker-keepalived/keepalived.conf on master1:
