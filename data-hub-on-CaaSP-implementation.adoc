@@ -32,22 +32,44 @@ These first steps are omitted until they can be tested and documented
 . Install physical nodes with SES 6
 ////
 . <<anchor-10>>
-. Map and mount the RBD images on each physical host
-. Create VMs on RBD images
-. Install Admin node through console
+. <<anchor-20>>
+. <<anchor-30>>
+. <<anchor-40>>
 .. Set up primary route to public router
 .. Secondary route to NAT router to the storage VLAN
-. Install CaaSP cluster nodes with AutoYaST
+. <<anchor-50>>
 .. Set primary route to public router
 .. After installation, scp /etc/sysconfig/network/routes from admin to all nodes, then reboot all nodes
 .. Verify that all nodes can ping google.com, admin.example.com, 172.16.200.130
 .. Configure keepalived on the three master nodes:
-. Apply Data Hub specific modifications to CaaSP cluster
-. Install Data Hub
-. Apply private container registry root certificate to Data Hub
+. <<anchor-60>>
+. <<anchor-70>>
+. <<anchor-80>>
 
 [[anchor-10]]
 ==== Create a SES RBD image for each physical host
+
+[[anchor-20]]
+==== Map and mount the RBD images on each physical host
+
+[[anchor-30]]
+==== Create VMs on RBD images
+
+[[anchor-40]]
+==== Install Admin node through console
+
+[[anchor-50]]
+==== Install CaaSP cluster nodes with AutoYaST
+
+[[anchor-60]]
+==== Apply Data Hub specific modifications to CaaSP cluster
+
+[[anchor-70]]
+==== Install Data Hub
+
+[[anchor-80]]
+==== Apply private container registry root certificate to Data Hub
+
 
 .Configure keepalived on the three master nodes:
 * Create the /opt/docker-keepalived/keepalived.conf file on master1:
