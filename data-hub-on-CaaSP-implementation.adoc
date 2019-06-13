@@ -31,7 +31,7 @@ These first steps are omitted until they can be tested and documented
 . Install physical nodes with SLES15 SP1
 . Install physical nodes with SES 6
 ////
-. Create a SES RBD image for each physical host
+. <<anchor-10>>
 . Map and mount the RBD images on each physical host
 . Create VMs on RBD images
 . Install Admin node through console
@@ -41,9 +41,13 @@ These first steps are omitted until they can be tested and documented
 .. Set primary route to public router
 .. After installation, scp /etc/sysconfig/network/routes from admin to all nodes, then reboot all nodes
 .. Verify that all nodes can ping google.com, admin.example.com, 172.16.200.130
+.. Configure keepalived on the three master nodes:
 . Apply Data Hub specific modifications to CaaSP cluster
 . Install Data Hub
 . Apply private container registry root certificate to Data Hub
+
+[[anchor-10]]
+==== Create a SES RBD image for each physical host
 
 .Configure keepalived on the three master nodes:
 * Create the /opt/docker-keepalived/keepalived.conf file on master1:
