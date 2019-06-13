@@ -5,10 +5,8 @@ This design is based on a very specific design. This design is intended for Proo
 ** A minimum of 2TB of usable space
 ** The Rados Block Device service
 *** Use https://ceph.com/pgcalc/ to get the commands to get the appropriate PG numbers for the pools
-** Pool configured for Rados Gateway but RGW node will be configured as a Docker container
-*** Use https://ceph.com/pgcalc/ to get the commands to create all RGW pools
-*** https://www.suse.com/documentation/ses-4/book_storage_admin/data/ceph_rgw_manual.html
 * DNS service configured with resolution for physical nodes as well as all CaaSP nodes
+** There should be a dedicated virtual IP address that resolves to master.example.com
 * Configuration of a TLS enabled Portus container registry (currently via docker-compose, running on the jumphost)
 * Configuration of a CaaSPv3 cluster with the following minimums:
 ** Four physical hosts, each provisioned with 32 logical CPUs, 64GB of memory, and 128GB of locally attached disk space
@@ -101,9 +99,9 @@ docker run -it -d --restart=always --net=host --privileged -v /opt/docker-keepal
 You can test pinging the virtual IP address while rebooting the master nodes to verify proper keepalived operation
 
 .Form the CaaSP cluster:
-Accept all nodes and form cluster. 
-	Use master.example.com as API endpoint
-	Use admin.example.com as cluster management endpoint
+Through the Velum GUI, accept all nodes and form cluster
+* Use master.example.com as API endpoint
+* Use admin.example.com as cluster management endpoint
 
 Wait for admin node to pickup new updates, then update admin and then rest of the cluster
 	CMD: watch kubectl get nodes -o wide
