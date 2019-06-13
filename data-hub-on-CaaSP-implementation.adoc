@@ -99,13 +99,13 @@ docker run -it -d --restart=always --net=host --privileged -v /opt/docker-keepal
 You can test pinging the virtual IP address while rebooting the master nodes to verify proper keepalived operation
 
 .Form the CaaSP cluster:
-Through the Velum GUI, accept all nodes and form cluster
-* Use master.example.com as API endpoint
-* Use admin.example.com as cluster management endpoint
+* Through the Velum GUI, accept all nodes and form cluster
+** Use master.example.com as API endpoint
+** Use admin.example.com as cluster management endpoint
 
-After the cluster has formed, wait for admin node to pickup new updates then update admin and then rest of the cluster
-* CMD: watch kubectl get nodes -o wide
-** Best way to view progress of the update and determine if one node is having problems
+* After the cluster has formed, wait for admin node to discover software updates then update Admin node, follewed by the rest of the cluster
+** CMD: watch kubectl get nodes -o wide
+*** Best way to view progress of the update and determine if one node is having problems
 
 
 After nodes are all updated, start preparing the cluster for Data Hub:
