@@ -25,19 +25,25 @@ TIP: The virtual machine's locally attached disk space can be stored in SES RBD 
 * Leverage AutoYaST when configuring the CaaSP cluster nodes for the easiest, most consistent cluster node installation.
 
 
-.Rough outline of steps:
-* Install physical nodes with SLES15 SP1
-* Install physical nodes with SES 6
-* Create an RBD image per host
-* Map and mount RBD images
-* Create VMs on RBD images
-* Install Admin node through console
-** Set up primary route to public router
-** Secondary route to NAT router to the storage VLAN
-* Install CaaSP cluster nodes with AutoYaST
-** Set primary route to public router
-** After installation, scp /etc/sysconfig/network/routes from admin to all nodes, then reboot all nodes
-** Verify that all nodes can ping google.com, admin.example.com, 172.16.200.130
+== Outline of steps:
+////
+These first steps are omitted until they can be tested and documented
+. Install physical nodes with SLES15 SP1
+. Install physical nodes with SES 6
+////
+. Create a SES RBD image for each physical host
+. Map and mount the RBD images on each physical host
+. Create VMs on RBD images
+. Install Admin node through console
+.. Set up primary route to public router
+.. Secondary route to NAT router to the storage VLAN
+. Install CaaSP cluster nodes with AutoYaST
+.. Set primary route to public router
+.. After installation, scp /etc/sysconfig/network/routes from admin to all nodes, then reboot all nodes
+.. Verify that all nodes can ping google.com, admin.example.com, 172.16.200.130
+. Apply Data Hub specific modifications to CaaSP cluster
+. Install Data Hub
+. Apply private container registry root certificate to Data Hub
 
 .Configure keepalived on the three master nodes:
 * Create the /opt/docker-keepalived/keepalived.conf file on master1:
@@ -103,12 +109,12 @@ You can test pinging the virtual IP address while rebooting the master nodes to 
 ** Use master.example.com as API endpoint
 ** Use admin.example.com as cluster management endpoint
 
-* After the cluster has formed, wait for admin node to discover software updates then update Admin node, follewed by the rest of the cluster
+* After the cluster has formed, wait for admin node to discover software updates then update Admin node (via Velum), followed by the rest of the cluster
 ** CMD: watch kubectl get nodes -o wide
-*** Best way to view progress of the update and determine if one node is having problems
+*** When updated anything on the cluster, this is a good way to view progress of the update and determine if one node is having problems
 
 
-After nodes are all updated, start preparing the cluster for Data Hub:
+.After nodes are all updated, start preparing the cluster for the Data Hub installation:
 
 Check the /etc/docker/daemon.json files before updating:
 docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube-master|kube-minion)' cmd.run "cat /etc/docker/daemon.json"
@@ -174,7 +180,7 @@ kubectl config get-contexts
 
 Add imagePullSecret to default service account in the data-hub namespace:
 
-admin:~ # kubectl create secret docker-registry dhregistry-secret -n data-hub --docker-server=dhregistry.example.com:5000 --docker-username=admin --docker-password='SUSE$k8s' --docker-email=admin@example.com
+admin:~ # kubectl create secret docker-registry dhregistry-secret -n data-hub --docker-server=dhregistry.example.com:5000 --docker-username=admin --docker-password='myp@ssw0rd' --docker-email=admin@example.com
 admin:~ # kubectl patch sa default -n data-hub -p '"imagePullSecrets": [{"name": "dhregistry-secret" }]'
 
 Test all nodes can pull from the private registry:
@@ -186,7 +192,7 @@ admin:~ # kubectl run nginx-test --image=dhregistry.example.com:5000/nginx --rep
 
 
 ### Doesn't seem to work. Possibly due to the special character in the password
-#docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(kube-master|kube-minion)' cmd.run "docker login dhregistry.example.com:5000 -u admin -p 'SUSE$k8s'"
+#docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(kube-master|kube-minion)' cmd.run "docker login dhregistry.example.com:5000 -u admin -p 'myp@ssw0rd'"
 
 ### Likely isn't needed since having the imagePullSecret working should be enough
 #admin:~ # docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(kube-master|kube-minion)' cmd.run "hostname && docker pull nginx:latest && docker tag nginx:latest dhregistry.example.com:5000/nginx:latest && docker push dhregistry.example.com:5000/nginx:latest && docker pull dhregistry.example.com:5000/nginx:latest"
@@ -389,7 +395,7 @@ Must be logged into docker.io from system: docker login
 
 Create /data/HANAExpress/passwd.json file:
 {
-  "master_password" : "SUSE$k8s"
+  "master_password" : "myp@ssw0rd"
 }
 
 sudo chown -R 12000:79 /data/HANAExpress
