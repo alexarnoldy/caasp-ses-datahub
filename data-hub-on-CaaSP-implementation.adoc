@@ -8,6 +8,7 @@ This design is based on a very specific design. This design is intended for Proo
 * DNS service configured with resolution for physical nodes as well as all CaaSP nodes
 ** There should be a dedicated virtual IP address that resolves to master.example.com
 * Configuration of a TLS enabled Portus container registry (currently via docker-compose, running on the jumphost)
+** In this document the FQDN for the Portus registry is dhregistry.example.com
 * Configuration of a CaaSPv3 cluster with the following minimums:
 ** Four physical hosts, each provisioned with 32 logical CPUs (16 hyper-threaded cores), 64GB of memory, and 128GB of locally attached disk space
 
@@ -133,24 +134,46 @@ docker run -it -d --restart=always --net=host --privileged -v /opt/docker-keepal
 ** CMD: watch kubectl get nodes -o wide
 *** When updated anything on the cluster, this is a good way to view progress of the update and determine if one node is having problems
 
+////
+After deploying Portus, need to add it to Velum with its certificate (Need to include steps to deploy Portus)
+////
+* Add the Portus private container registry to Velum:
+** Name: dhregistry.example.com
+** URL: https://dhregistry.example.com:5000
+** Certificate: (Copy/Paste in from the secrets directory in Portus)
+
+////
+May need to scp the /etc/ntp.conf file to all k8s nodes and then start && enable ntpd.service on them
+Will include in the doc after next opportunity to test
+////
+
+* Can get the kubeconfig for the Admin node from Velum, or:
+** Copy the .kube/config file from the admin node to the jumphost 
+*** Change https://api.infra.caasp.local:6443 to https://master.example.com:6443
+** Copy all of the certificate files in .kube/config from the Admin node to the jumphost
+** Add the following to the .kube/config file:
+- context:
+    cluster: default-cluster
+    user: cluster-admin
+    namespace: data-hub
+  name: data-hub
+
+
 
 [[anchor-60]]
 ==== Apply Data Hub specific modifications to CaaSP cluster
-
-[[anchor-70]]
-==== Install Data Hub
-
-[[anchor-80]]
-==== Apply private container registry root certificate to Data Hub
-
-
-
+////
 .After nodes are all updated, start preparing the cluster for the Data Hub installation:
+////
 
-Check the /etc/docker/daemon.json files before updating:
+* From the Admin node, check the /etc/docker/daemon.json files before updating:
+----
 docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube-master|kube-minion)' cmd.run "cat /etc/docker/daemon.json"
+----
 
-Each node (except for the admin) should have:
+* Each cluster node (except for the admin) should have:
+** Copy the file to any nodes that need it, then restart docker.service on that node
+----
     {
       "registries": [
         {
@@ -169,40 +192,32 @@ Each node (except for the admin) should have:
       }
     }
 
-If not, need to copy that file to each node and restart docker
+----
 
-
-The pod that executes the SAP Data Hub Pipeline Engine API server must be able to access the internet while building the container images requested by pipeline operators:
-
+* The pod that executes the SAP Data Hub Pipeline Engine API server must be able to access the Internet while building the container images requested by pipeline operators
+* Ensure all cluster nodes can reach the Internet
+----
 docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(kube-master|kube-minion)' cmd.run "ping -c 2 google.com"
+----
 
-####
-## Seems like need to scp the /etc/ntp.conf file to all k8s nodes and then start && enable ntpd.service on them
-####
+[[anchor-70]]
+==== Install Data Hub
+
+[[anchor-80]]
+==== Apply Portus private container registry root certificate to Data Hub
+
+
+
 
 Jumphost (the Installation host) must have kubectl and helm installed. Both can be taken from the SUSE-CaaSP-3.0-Pool repository. Take info from admin node to add the repo to the jumphost.
 
 sudo zypper in kubernetes-client
 sudo zypper in helm
 
-Copy the .kube/config file from the admin node to the jumphost. Change https://api.infra.caasp.local:6443 to https://master.example.com:6443
-Copy all of the certificate files under /etc from admin node to jumphost
-Add the following to the .kube/config file:
-- context:
-    cluster: default-cluster
-    user: cluster-admin
-    namespace: data-hub
-  name: data-hub
-
 Before you can start deployment, you must initialize Helm, the Kubernetes package manager, and provide it with the respective roles and permissions within the Kubernetes cluster.
 
 kubectl create clusterrolebinding tiller --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
 helm init --client-only --service-account tiller
-
-After deploying Portus, need to add it to Velum with its certificate (Need to include steps to deploy Portus)
-Name: dhregistry.example.com
-URL: https://dhregistry.example.com:5000
-Certificate: (Copy in from the secrets directory in Portus)
 
 Create the data-hub namespace and use the data-hub configuration context:
 kubectl create namespace data-hub
