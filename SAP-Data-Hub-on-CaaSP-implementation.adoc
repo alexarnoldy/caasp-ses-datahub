@@ -82,7 +82,7 @@ vrrp_instance VI_1 {
         eth0                    
     }
     virtual_ipaddress {
-        172.16.240.52           # replace this with your virtual IP
+        172.16.200.57           # replace this with your virtual IP
     }
     nopreempt
 }
@@ -99,12 +99,15 @@ vrrp_instance VI_1 {
         eth0                    
     }
     virtual_ipaddress {
-        172.16.240.52           # replace this with your virtual IP
+        172.16.200.57           # replace this with your virtual IP
     }
     nopreempt
 }
 ----
 
+////
+VAR MASTERVIP=172.16.200.57
+////
 * Create the /opt/docker-keepalived/keepalived.conf file on master3:
 ----
 vrrp_instance VI_1 {
@@ -116,7 +119,7 @@ vrrp_instance VI_1 {
         eth0                    
     }
     virtual_ipaddress {
-        172.16.240.52           # replace this with your virtual IP
+        172.16.200.57           # replace this with your virtual IP
     }
     nopreempt
 }
@@ -217,11 +220,25 @@ docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube
 ----
 docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(kube-master|kube-minion)' cmd.run "ping -c 2 google.com"
 ----
+
 * Create the cluster-admin clusterRoleBinding for Tiller and initialize Helm:
 ----
 kubectl create clusterrolebinding tiller --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
 helm init --client-only --service-account tiller
 ----
+
+* Add imagePullSecret to default service account in the data-hub namespace:
+
+////
+VAR REGISTRY=dhregistry
+VAR DOMAINNAME=example.com
+VAR DATAHUBNAMESPACE=data-hub
+VAR PASSWORD=myp@ssw0rd
+////
+
+kubectl create secret docker-registry dhregistry-secret -n data-hub --docker-server=dhregistry.example.com:5000 --docker-username=admin --docker-password='myp@ssw0rd' --docker-email=admin@example.com
+kubectl patch sa default -n data-hub -p '"imagePullSecrets": [{"name": "dhregistry-secret" }]'
+
 
 
 
@@ -241,18 +258,6 @@ sudo zypper in kubernetes-client
 sudo zypper in helm
 ////
 
-////
-VAR REGISTRY=dhregistry
-VAR DOMAINNAME=example.com
-VAR DATAHUBNAMESPACE=data-hub
-VAR PASSWORD=myp@ssw0rd
-////
-
-
-Add imagePullSecret to default service account in the data-hub namespace:
-
-admin:~ # kubectl create secret docker-registry dhregistry-secret -n data-hub --docker-server=dhregistry.example.com:5000 --docker-username=admin --docker-password='myp@ssw0rd' --docker-email=admin@example.com
-admin:~ # kubectl patch sa default -n data-hub -p '"imagePullSecrets": [{"name": "dhregistry-secret" }]'
 
 Test all nodes can pull from the private registry:
 admin:~ # docker pull nginx:latest
@@ -262,6 +267,8 @@ admin:~ # docker push dhregistry.example.com:5000/nginx:latest
 admin:~ # kubectl run nginx-test --image=dhregistry.example.com:5000/nginx --replicas=3
 
 
+////
+The following constitutes a lot of thrashing around to find the magic combination. Likely won't be of much value but keeping it around anyway
 ### Doesn't seem to work. Possibly due to the special character in the password
 #docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(kube-master|kube-minion)' cmd.run "docker login dhregistry.example.com:5000 -u admin -p 'myp@ssw0rd'"
 
@@ -283,8 +290,18 @@ Create Ceph RBD pool and prepare CaaSP cluster to use it:
 
 #Verify all nodes can communicate with the CaaSP cluster:
 #docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube-master|kube-minion)' cmd.run "ceph -s"
+////
 
 Assumes user and pool have been created:
+
+////
+VAR SESADMINNODE=172.16.200.130
+////
+
+* From the CaaSP Admin node:
+----
+scp 172.16.200.130:/etc/ceph/* /etc/ceph
+
 
 Set up Ceph secrets and default storage class in K8s:
 On the SES Admin node, get the keys for data hub and admin users:
@@ -477,5 +494,13 @@ docker pull store/saplabs/hanaexpress:2.00.036.00.20190223.1
 sudo docker run -d -p 39013:39013 -p 39017:39017 -p 39041-39045:39041-39045 -p 1128-1129:1128-1129 -p 59013-59014:59013-59014 -v /data/HANAExpress:/hana/mounts --ulimit nofile=1048576:1048576 --sysctl kernel.shmmax=1073741824 --sysctl net.ipv4.ip_local_port_range='40000 60999' --sysctl kernel.shmmni=524288 --sysctl kernel.shmall=8388608 --name HXE store/saplabs/hanaexpress:2.00.036.00.20190223.1 --passwords-url file:///hana/mounts/passwd.json --agree-to-sap-license
 
 
+////
+Start fidling with Ironic
+Jason Douglas, Mike Latimer - 
+////
+
+////
 ##### Need to test pulling   dhregistry.example.com:5000/com.sap.hana.container/base-opensuse42.3-amd64   on nodes with smaller boot drives
+////
+
 // vim: set syntax=asciidoc:
