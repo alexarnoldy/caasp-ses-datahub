@@ -320,17 +320,22 @@ export CephUser="data-hub-demo" CephPool="data-hub-demo-pool"
 ceph auth get-or-create client.${CephUser} mon 'allow r' osd \'allow class-read object_prefix rbd_children, allow rwx pool=${CephPool}\' -o ceph.client.${CephUser}.keyring
 ----
 
-Set up Ceph secrets and default storage class in K8s:
-On the SES Admin node, get the keys for data hub and admin users:
-admin:~ # ceph auth ls  | egrep -A1 "data-hub-demo|admin"
+* Set up Ceph secrets and default storage class in K8s:
+----
+ceph auth ls  | egrep -A1 "data-hub-demo|admin"
+----
 
-Encode keys (admin key as an example):
-admin:~ # echo -n "AQCliWtcAAAAABAAMRgUejj5FCG/bvLBpmKDUw==" | base64
+* Encode each of the keys (admin key used as an example):
+----
+echo -n "AQCliWtcAAAAABAAMRgUejj5FCG/bvLBpmKDUw==" | base64
+----
+.Ouput: 
 QVFDbGlXdGNBQUFBQUJBQU1SZ1Vlamo1RkNHL2J2TEJwbUtEVXc9PQ==
 
-Create secrets:
+* Create the Ceph admin user and data-hub-demo user secrets:
+----
+# vi ceph-secret-admin.yaml
 
-admin@jumphost:~/data-hub-build> vi ceph-secret-admin.yaml
 apiVersion: v1
 kind: Secret
 metadata:
@@ -340,7 +345,8 @@ type: "kubernetes.io/rbd"
 data:
   key: QVFDbGlXdGNBQUFBQUJBQU1SZ1Vlamo1RkNHL2J2TEJwbUtEVXc9PQ==
 
-admin@jumphost:~/data-hub-build> vi ceph-secret-data-hub-demo.yaml
+# vi ceph-secret-data-hub-demo.yaml
+
 apiVersion: v1
 kind: Secret
 metadata:
@@ -349,14 +355,19 @@ metadata:
 type: "kubernetes.io/rbd"
 data:
   key: QVFDUU12WmN4VjV2RXhBQUVoekU5MWt3YmlHNmF0dzVPYUU0WUE9PQ==
+----
 
-admin@jumphost:~/data-hub-build> kubectl apply -n data-hub -f ceph-secret-data-hub-demo.yaml
-admin@jumphost:~/data-hub-build> kubectl apply -n data-hub -f ceph-secret-admin.yaml
+* Apply the secrets:
+----
+# kubectl apply -n data-hub -f ceph-secret-data-hub-demo.yaml
+# kubectl apply -n data-hub -f ceph-secret-admin.yaml
+----
 
 
-Create storage class and make it default:
+* Create the Storage Class and make it default:
+----
+# vi ses-rbd-sc.yaml
 
-admin@jumphost:~/data-hub-build> vi ses-rbd-sc.yaml
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
@@ -372,11 +383,15 @@ parameters:
   pool: data-hub-demo-pool
   userId: data-hub-demo
   userSecretName: ceph-secret-data-hub-demo
+----
 
-admin@jumphost:~/data-hub-build> kubectl apply -n data-hub -f ses-rbd-sc.yaml
-admin@jumphost:~/data-hub-build> kubectl patch storageclass ses-rbd-sc -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-admin@jumphost:~/data-hub-build> kubectl get storageclass
-	Should show only one storage class and it is listed as (default)
+* Apply the Storage Class:
+----
+# kubectl apply -n data-hub -f ses-rbd-sc.yaml
+# kubectl patch storageclass ses-rbd-sc -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+# kubectl get storageclass
+----
+.Should show only one storage class and it is listed as (default)
 
 Test that a PVC can be created and bound:
 
