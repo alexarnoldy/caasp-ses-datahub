@@ -63,7 +63,7 @@ These first steps are omitted until they can be tested and documented
 
 [[anchor-35]]
 ==== Create Portus secure private Docker registry
-* Follow this work-in-progress guide to create a Portus registry with docker-compose: https://github.com/alexarnoldy/caasp-ses-datahub/blob/master/portus-docker-compose
+* Follow this work-in-progress guide to create a Portus registry using docker-compose: https://github.com/alexarnoldy/caasp-ses-datahub/blob/master/portus-docker-compose
 
 [[anchor-40]]
 ==== Install Admin node through console
@@ -258,13 +258,15 @@ sudo zypper in kubernetes-client
 sudo zypper in helm
 ////
 
-
+////
+Likely won't be needed
 Test all nodes can pull from the private registry:
 admin:~ # docker pull nginx:latest
 admin:~ # docker tag nginx:latest dhregistry.example.com:5000/nginx:latest
 admin:~ # docker login dhregistry.example.com:5000
 admin:~ # docker push dhregistry.example.com:5000/nginx:latest
 admin:~ # kubectl run nginx-test --image=dhregistry.example.com:5000/nginx --replicas=3
+////
 
 
 ////
@@ -292,8 +294,6 @@ Create Ceph RBD pool and prepare CaaSP cluster to use it:
 #docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube-master|kube-minion)' cmd.run "ceph -s"
 ////
 
-Assumes user and pool have been created:
-
 ////
 VAR SESADMINNODE=172.16.200.130
 ////
@@ -302,6 +302,11 @@ VAR SESADMINNODE=172.16.200.130
 ----
 scp 172.16.200.130:/etc/ceph/* /etc/ceph
 ----
+
+////
+VAR CEPHPOOL=data-hub-demo-pool
+VAR CEPHPGSIZE=16
+////
 
 * Create the pool and enable RBD support 
 ** Recommend you use ceph osd calculator (https://ceph.com/pgcalc/) to get CephPGSize
@@ -313,6 +318,9 @@ ceph osd pool application enable ${CephPool} rbd
 ceph osd pool application get ${CephPool}
 ----
 
+////
+VAR CEPHUSER=demo-hub-demo
+////
 
 * Create the user that will manage the pool 
 ----
@@ -332,7 +340,7 @@ echo -n "AQCliWtcAAAAABAAMRgUejj5FCG/bvLBpmKDUw==" | base64
 .Ouput: 
 QVFDbGlXdGNBQUFBQUJBQU1SZ1Vlamo1RkNHL2J2TEJwbUtEVXc9PQ==
 
-* Create the Ceph admin user and data-hub-demo user secrets:
+* Create the Ceph admin user and data-hub-demo user secrets (use the base64 encoded keys you calculated above):
 ----
 # vi ceph-secret-admin.yaml
 
@@ -344,7 +352,9 @@ metadata:
 type: "kubernetes.io/rbd"
 data:
   key: QVFDbGlXdGNBQUFBQUJBQU1SZ1Vlamo1RkNHL2J2TEJwbUtEVXc9PQ==
+----
 
+----
 # vi ceph-secret-data-hub-demo.yaml
 
 apiVersion: v1
@@ -363,6 +373,10 @@ data:
 # kubectl apply -n data-hub -f ceph-secret-admin.yaml
 ----
 
+
+////
+VAR CEPHMONITORS=172.16.200.132:6789,172.16.200.133:6789,172.16.200.134:6789
+////
 
 * Create the Storage Class and make it default:
 ----
@@ -393,9 +407,10 @@ parameters:
 ----
 .Should show only one storage class and it is listed as (default)
 
-Test that a PVC can be created and bound:
+* Test that a PVC can be created and bound:
+----
+# vi test-pvc.yaml
 
-admin@jumphost:~/data-hub-build> vi test-pvc.yaml
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
@@ -407,30 +422,44 @@ spec:
   resources:
     requests:
       storage: 100Gi
+----
 
-admin@jumphost:~/data-hub-build> kubectl apply -n data-hub -f test-pvc.yaml 
-admin@jumphost:~/data-hub-build> kubectl get pvc
-	After five to ten seconds, should show the PVC is bound
-admin@jumphost:~/data-hub-build> kubectl delete -n data-hub -f test-pvc.yaml 
+----
+# kubectl apply -n data-hub -f test-pvc.yaml 
+# kubectl get pvc
+----
 
+* After five to ten seconds, should show the PVC is bound
+----
+# kubectl delete -n data-hub -f test-pvc.yaml 
+----
 
-
+////
 From the jumphost: 
 	Add to /etc/ceph/rbdmap:
 	caasp01-aba-vms/data-hub        id=admin,keyring=/etc/ceph/ceph.client.admin.keyring
 	Add to /etc/fstab:
 	/dev/rbd/caasp01-aba-vms/data-hub       /mnt/caasp01-aba-vms/data-hub   ext4    noauto  0  0
-	Download the SAP Data Hub software from https://launchpad.support.sap.com/
 		Save to /dev/rbd/caasp01-aba-vms/data-hub
+////
 
+
+* Download the SAP Data Hub software from https://launchpad.support.sap.com/ and save it to the Admin node
+
+----
 kubectl edit psp suse.caasp.psp.privileged
-Search for allowedHostPaths first to ensure it isn’t already set elsewhere in the file
-Add the following below and at the same indentation as “volumes:”
-
+----
+.Search for allowedHostPaths 
+.If allowedHostPaths is not alrady in the configuration, add the following below, and at the same indentation, as “volumes:”
+----
   allowedHostPaths:
   - pathPrefix: /
+----
 
-Create  clusterrolebinding.yaml:
+* Create clusterrolebinding.yaml:
+
+----
+# vi clusterrolebinding.yaml
 
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -443,27 +472,29 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: default
-  namespace: XXX
+  namespace: DATAHUBNAMESPACE
 - kind: ServiceAccount
-  name: vora-vsystem-XXX
-  namespace: XXX
+  name: vora-vsystem-DATAHUBNAMESPACE
+  namespace: DATAHUBNAMESPACE
 - kind: ServiceAccount
-  name: XXX-elasticsearch
-  namespace: XXX
+  name: DATAHUBNAMESPACE-elasticsearch
+  namespace: DATAHUBNAMESPACE
 - kind: ServiceAccount
-  name: XXX-fluentd
-  namespace: XXX
+  name: DATAHUBNAMESPACE-fluentd
+  namespace: DATAHUBNAMESPACE
 - kind: ServiceAccount
-  name: XXX-nodeexporter
-  namespace: XXX
+  name: DATAHUBNAMESPACE-nodeexporter
+  namespace: DATAHUBNAMESPACE
 - kind: ServiceAccount
   name: vora-vflow-server
-  namespace: XXX
+  namespace: DATAHUBNAMESPACE
+----
 
+----
+export NAMESPACE=data-hub && sed -i "s/DATAHUBNAMESPACE/${NAMESPACE}/g"  clusterrolebinding.yaml && kubectl apply -f clusterrolebinding.yaml
+----
 
-export NAMESPACE=data-hub && sed -i "s/XXX/${NAMESPACE}/g"  clusterrolebinding.yaml && kubectl apply -f clusterrolebinding.yaml
-
-If any master or worker nodes have less than 32GB, it is recommended to reboot each, in turn, before starting the installation to ensure they have the maximume amount of available memory for the installation.
+* If any master or worker nodes have less than 32GB, it is recommended to reboot each, in turn, before starting the installation to ensure they have the maximume amount of available memory for the installation.
 
 admin@jumphost:~> cd /mnt/caasp01-aba-vms/data-hub/SAPDataHub-2.4.83-Foundation/; docker login dhregistry.example.com:5000 && 
 ./install.sh -e vora-cluster.components.dlog.replicationFactor="1" -e vora-cluster.components.dlog.standbyFactor="0" -e vora-context-deploy.secop.profile=notls  --image-pull-secret dhregistry-secret --pv-storage-class ses-rbd-sc --accept-license --namespace data-hub --registry dhregistry.example.com:5000 --enable-checkpoint-store no
