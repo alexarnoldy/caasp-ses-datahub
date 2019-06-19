@@ -49,6 +49,7 @@ These first steps are omitted until they can be tested and documented
 .. Configure keepalived on the three master nodes:
 . <<anchor-55>>
 . <<anchor-60>>
+. <<anchor-65>>
 . <<anchor-70>>
 . <<anchor-80>>
 
@@ -239,35 +240,66 @@ VAR PASSWORD=myp@ssw0rd
 kubectl create secret docker-registry dhregistry-secret -n data-hub --docker-server=dhregistry.example.com:5000 --docker-username=admin --docker-password='myp@ssw0rd' --docker-email=admin@example.com
 kubectl patch sa default -n data-hub -p '"imagePullSecrets": [{"name": "dhregistry-secret" }]'
 
-
-
-
-[[anchor-70]]
-==== Install Data Hub
-
-[[anchor-80]]
-==== Apply Portus private container registry root certificate to Data Hub
-
-
-
 ////
-Will add this back in when CaaSPv4 is released
-Jumphost (the Installation host) must have kubectl and helm installed. Both can be taken from the SUSE-CaaSP-3.0-Pool repository. Take info from Admin node to add the repo to the jumphost.
-
-sudo zypper in kubernetes-client
-sudo zypper in helm
+From the jumphost: 
+	Add to /etc/ceph/rbdmap:
+	caasp01-aba-vms/data-hub        id=admin,keyring=/etc/ceph/ceph.client.admin.keyring
+	Add to /etc/fstab:
+	/dev/rbd/caasp01-aba-vms/data-hub       /mnt/caasp01-aba-vms/data-hub   ext4    noauto  0  0
+		Save to /dev/rbd/caasp01-aba-vms/data-hub
 ////
 
-////
-Likely won't be needed
-Test all nodes can pull from the private registry:
-admin:~ # docker pull nginx:latest
-admin:~ # docker tag nginx:latest dhregistry.example.com:5000/nginx:latest
-admin:~ # docker login dhregistry.example.com:5000
-admin:~ # docker push dhregistry.example.com:5000/nginx:latest
-admin:~ # kubectl run nginx-test --image=dhregistry.example.com:5000/nginx --replicas=3
-////
 
+----
+kubectl edit psp suse.caasp.psp.privileged
+----
+.Search for allowedHostPaths 
+.If allowedHostPaths is not alrady in the configuration, add the following below, and at the same indentation, as “volumes:”
+----
+  allowedHostPaths:
+  - pathPrefix: /
+----
+
+* Create clusterrolebinding.yaml:
+
+----
+# vi clusterrolebinding.yaml
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: suse:caasp:psp:priviliged:default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: suse:caasp:psp:privileged
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: DATAHUBNAMESPACE
+- kind: ServiceAccount
+  name: vora-vsystem-DATAHUBNAMESPACE
+  namespace: DATAHUBNAMESPACE
+- kind: ServiceAccount
+  name: DATAHUBNAMESPACE-elasticsearch
+  namespace: DATAHUBNAMESPACE
+- kind: ServiceAccount
+  name: DATAHUBNAMESPACE-fluentd
+  namespace: DATAHUBNAMESPACE
+- kind: ServiceAccount
+  name: DATAHUBNAMESPACE-nodeexporter
+  namespace: DATAHUBNAMESPACE
+- kind: ServiceAccount
+  name: vora-vflow-server
+  namespace: DATAHUBNAMESPACE
+----
+
+----
+export NAMESPACE=data-hub && sed -i "s/DATAHUBNAMESPACE/${NAMESPACE}/g"  clusterrolebinding.yaml && kubectl apply -f clusterrolebinding.yaml
+----
+
+[[anchor-65]]
+==== Integrate SUSE Enterprise Storage RBD service into CaaSP
 
 ////
 The following constitutes a lot of thrashing around to find the magic combination. Likely won't be of much value but keeping it around anyway
@@ -434,65 +466,37 @@ spec:
 # kubectl delete -n data-hub -f test-pvc.yaml 
 ----
 
-////
-From the jumphost: 
-	Add to /etc/ceph/rbdmap:
-	caasp01-aba-vms/data-hub        id=admin,keyring=/etc/ceph/ceph.client.admin.keyring
-	Add to /etc/fstab:
-	/dev/rbd/caasp01-aba-vms/data-hub       /mnt/caasp01-aba-vms/data-hub   ext4    noauto  0  0
-		Save to /dev/rbd/caasp01-aba-vms/data-hub
-////
 
+[[anchor-70]]
+==== Install Data Hub
 
 * Download the SAP Data Hub software from https://launchpad.support.sap.com/ and save it to the Admin node
 
-----
-kubectl edit psp suse.caasp.psp.privileged
-----
-.Search for allowedHostPaths 
-.If allowedHostPaths is not alrady in the configuration, add the following below, and at the same indentation, as “volumes:”
-----
-  allowedHostPaths:
-  - pathPrefix: /
-----
+[[anchor-80]]
+==== Apply Portus private container registry root certificate to Data Hub
 
-* Create clusterrolebinding.yaml:
 
-----
-# vi clusterrolebinding.yaml
 
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: suse:caasp:psp:priviliged:default
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: suse:caasp:psp:privileged
-subjects:
-- kind: ServiceAccount
-  name: default
-  namespace: DATAHUBNAMESPACE
-- kind: ServiceAccount
-  name: vora-vsystem-DATAHUBNAMESPACE
-  namespace: DATAHUBNAMESPACE
-- kind: ServiceAccount
-  name: DATAHUBNAMESPACE-elasticsearch
-  namespace: DATAHUBNAMESPACE
-- kind: ServiceAccount
-  name: DATAHUBNAMESPACE-fluentd
-  namespace: DATAHUBNAMESPACE
-- kind: ServiceAccount
-  name: DATAHUBNAMESPACE-nodeexporter
-  namespace: DATAHUBNAMESPACE
-- kind: ServiceAccount
-  name: vora-vflow-server
-  namespace: DATAHUBNAMESPACE
-----
+////
+Will add this back in when CaaSPv4 is released
+Jumphost (the Installation host) must have kubectl and helm installed. Both can be taken from the SUSE-CaaSP-3.0-Pool repository. Take info from Admin node to add the repo to the jumphost.
 
-----
-export NAMESPACE=data-hub && sed -i "s/DATAHUBNAMESPACE/${NAMESPACE}/g"  clusterrolebinding.yaml && kubectl apply -f clusterrolebinding.yaml
-----
+sudo zypper in kubernetes-client
+sudo zypper in helm
+////
+
+////
+Likely won't be needed
+Test all nodes can pull from the private registry:
+admin:~ # docker pull nginx:latest
+admin:~ # docker tag nginx:latest dhregistry.example.com:5000/nginx:latest
+admin:~ # docker login dhregistry.example.com:5000
+admin:~ # docker push dhregistry.example.com:5000/nginx:latest
+admin:~ # kubectl run nginx-test --image=dhregistry.example.com:5000/nginx --replicas=3
+////
+
+
+
 
 * If any master or worker nodes have less than 32GB, it is recommended to reboot each, in turn, before starting the installation to ensure they have the maximume amount of available memory for the installation.
 
