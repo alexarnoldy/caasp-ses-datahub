@@ -472,32 +472,6 @@ spec:
 
 * Download the SAP Data Hub software from https://launchpad.support.sap.com/ and save it to the Admin node
 
-[[anchor-80]]
-==== Apply Portus private container registry root certificate to Data Hub
-
-
-
-////
-Will add this back in when CaaSPv4 is released
-Jumphost (the Installation host) must have kubectl and helm installed. Both can be taken from the SUSE-CaaSP-3.0-Pool repository. Take info from Admin node to add the repo to the jumphost.
-
-sudo zypper in kubernetes-client
-sudo zypper in helm
-////
-
-////
-Likely won't be needed
-Test all nodes can pull from the private registry:
-admin:~ # docker pull nginx:latest
-admin:~ # docker tag nginx:latest dhregistry.example.com:5000/nginx:latest
-admin:~ # docker login dhregistry.example.com:5000
-admin:~ # docker push dhregistry.example.com:5000/nginx:latest
-admin:~ # kubectl run nginx-test --image=dhregistry.example.com:5000/nginx --replicas=3
-////
-
-
-
-
 * If any master or worker nodes have less than 32GB, it is recommended to reboot each, in turn, before starting the installation to ensure they have the maximume amount of available memory for the installation.
 
 * Run the SAP Data Hub installation script:
@@ -528,8 +502,15 @@ admin:~ # kubectl run nginx-test --image=dhregistry.example.com:5000/nginx --rep
 #########################################################
 ----
 
+NOTE: Take note of the "vsystem/vsystem port:" number. This will be the port needed to reach the Data Hub UI
+
+TIP: Use the command `kubectl get svc -n data-hub | grep  "vsystem "` to find the vsystem port number after the installation.
+
+[[anchor-80]]
+==== Apply Portus private container registry root certificate to Data Hub
+
 * Import the Portus root CA into Data Hub:
-** The root CA can be in .pem format (which is the same format but with a different suffix as .crt). It must be available on the system that is running the web browser used to access Data Hub.
+** The root CA needs to be in .pem format (which is the same format but with a different suffix as .crt). It must be available on the system that is running the web browser used to access Data Hub.
 
 ////
 VAR DATAHUBUSERNAME=suse
@@ -539,6 +520,30 @@ VAR DATAHUBUSERPASSWORD=myp@ssw0rd
 * The SAP Data Hub Launchpad will be available at https://master.example.com:31273
 ** Log into the default Tenant as user suse and the password provided during installation.
 ** Select Connection Management -> Import, select certificate file and select Open
+
+
+
+
+////
+Will add this back in when CaaSPv4 is released
+Jumphost (the Installation host) must have kubectl and helm installed. Both can be taken from the SUSE-CaaSP-3.0-Pool repository. Take info from Admin node to add the repo to the jumphost.
+
+sudo zypper in kubernetes-client
+sudo zypper in helm
+////
+
+////
+Likely won't be needed
+Test all nodes can pull from the private registry:
+admin:~ # docker pull nginx:latest
+admin:~ # docker tag nginx:latest dhregistry.example.com:5000/nginx:latest
+admin:~ # docker login dhregistry.example.com:5000
+admin:~ # docker push dhregistry.example.com:5000/nginx:latest
+admin:~ # kubectl run nginx-test --image=dhregistry.example.com:5000/nginx --replicas=3
+////
+
+
+
 
 ////
 If a node seems to be having problems, try draining it: kubectl drain <node> --delete-local-data --ignore-daemonsets
