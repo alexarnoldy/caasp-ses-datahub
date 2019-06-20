@@ -41,7 +41,7 @@ sudo systemctl restart docker.service
 
 To use SSL for communicating to the registry:
 sudo cp -p secrets/rootca.crt /etc/pki/trust/anchors/dhregistry.example.com-ca.crt  
-update-ca-certificates
+sudo update-ca-certificates
 - Note: I didn't have to restart Docker, but I've heard that it is needed here.
 
 
