@@ -56,7 +56,15 @@ These first steps are omitted until they can be tested and documented
 [[anchor-10]]
 ==== Create an SES RBD image for each physical host
 
-* Create the user that will manage the infrastructure pool 
+* Set up the host to work with the SES cluster:
+----
+sudo zypper -n in ceph-common
+export SESAdminNode="172.16.200.130"
+sudo bash -c "scp ${SESAdminNode}:/etc/ceph/ceph.client.admin.keyring /etc/ceph"
+sudo bash -c "scp ${SESAdminNode}:/etc/ceph/ceph.conf /etc/ceph"
+----
+
+* Create the user that will manage the infrastructure pool:
 
 TIP: Use the command `ceph auth ls | grep data-hub-infra` to ensure the user hasn't already been created. If it has, skip this step and continue on to "Gather the keys for the SES admin and data-hub-demo users"
 
@@ -66,18 +74,18 @@ ceph auth get-or-create client.${CephUser} mon 'allow r' osd \'allow class-read 
 ----
 
 
-* Run the following command from each physical host
+* Run the following command from each physical host:
 ----
 export CephUser="data-hub-infra" SESAdminNode="172.16.200.130"
 sudo bash -c "scp ${SESAdminNode}:/etc/ceph/ceph.client.${CephUser}.keyring /etc/ceph"
-sudo bash -c "scp ${SESAdminNode}:/etc/ceph/ceph.conf /etc/ceph"
 ----
 
-NOTE: Run the following commands from just one physical host
 
 * Create the SES (Ceph) storage pool for the physical hosts and enable RBD support 
 
 TIP: Use the ceph osd calculator (https://ceph.com/pgcalc/) to get the number of Placement Groups for the pool (CephPGSize)
+
+NOTE: Run the following five commands from just one physical host
 
 ----
 export CephPool="data-hub-infra-pool" CephPGSize="16"
@@ -89,8 +97,28 @@ ceph osd pool application get ${CephPool}
 
 * Create an RBD image for each host
 
+NOTE: Run the following two commands on each physical host
+
+----
+export Host=`hostname` CephPool="data-hub-infra-pool"
+rbd create -s 512G ${CephPool}/${Host}
+----
+
 [[anchor-20]]
 ==== Map and mount the RBD images on each physical host
+
+NOTE: Run the following eight commands on each physical host to mount the new RBD image and cause it to remount during system boot
+
+----
+export Host=`hostname` CephPool="data-hub-infra-pool" CephUser="data-hub-infra"
+sudo bash -c "echo ${CephPool}/${Host}'     'id=${CephUser},keyring=/etc/ceph/ceph.client.${CephUser}.keyring" >> /etc/ceph/rbdmap"
+sudo bash -c "echo /dev/rbd/${CephPool}/${Host}'     '/mnt/${CephPool}/${Host}'     'ext4'     'noauto'     '0'  '0 >> /etc/fstab"
+sudo mkdir -p /mnt/${CephPool}/${Host}
+sudo rbd map ${CephPool}/${Host}
+sudo mkfs.ext4 /dev/rbd/${CephPool}/${Host} 
+sudo mount /mnt/${CephPool}/${Host} 
+sudo systemctl start rbdmap.service && sudo systemctl enable rbdmap.service
+----
 
 [[anchor-30]]
 ==== Create VMs on RBD images
