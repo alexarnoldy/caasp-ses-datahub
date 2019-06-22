@@ -57,6 +57,9 @@ These first steps are omitted until they can be tested and documented
 ==== Create an SES RBD image for each physical host
 
 * Set up the host to work with the SES cluster:
+
+NOTE: Run the following four commands on each physical host
+
 ----
 sudo zypper -n in ceph-common
 export SESAdminNode="172.16.200.130"
@@ -66,15 +69,19 @@ sudo bash -c "scp ${SESAdminNode}:/etc/ceph/ceph.conf /etc/ceph"
 
 * Create the user that will manage the infrastructure pool:
 
-TIP: Use the command `ceph auth ls | grep data-hub-infra` to ensure the user hasn't already been created. If it has, skip this step and continue on to "Gather the keys for the SES admin and data-hub-demo users"
+TIP: Use the command `ceph auth ls | grep data-hub-infra` to ensure the user hasn't already been created. If it has, skip this step and continue on to "Import the keyring for the data-hub-infra user"
+
+NOTE: Run the following two commands from each physical host:
 
 ----
 export CephUser="data-hub-infra" CephPool="data-hub-infra-pool"
 ceph auth get-or-create client.${CephUser} mon 'allow r' osd \'allow class-read object_prefix rbd_children, allow rwx pool=${CephPool}\' -o ceph.client.${CephUser}.keyring
 ----
 
+* Import the keyring for the data-hub-infra user
 
-* Run the following command from each physical host:
+NOTE: Run the following two commands from each physical host:
+
 ----
 export CephUser="data-hub-infra" SESAdminNode="172.16.200.130"
 sudo bash -c "scp ${SESAdminNode}:/etc/ceph/ceph.client.${CephUser}.keyring /etc/ceph"
@@ -107,7 +114,9 @@ rbd create -s 512G ${CephPool}/${Host}
 [[anchor-20]]
 ==== Map and mount the RBD images on each physical host
 
-NOTE: Run the following eight commands on each physical host to mount the new RBD image and cause it to remount during system boot
+* Mount the new RBD image to the host and cause it to remount during system boot
+
+NOTE: Run the following eight commands on each physical host 
 
 ----
 export Host=`hostname` CephPool="data-hub-infra-pool" CephUser="data-hub-infra"
