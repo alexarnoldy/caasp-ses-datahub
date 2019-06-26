@@ -40,18 +40,33 @@ These first steps are omitted until they can be tested and documented
 . <<anchor-30>>
 . <<anchor-35>>
 . <<anchor-40>>
-.. Set up primary route to public router
-.. Secondary route to NAT router to the storage VLAN
 . <<anchor-50>>
-.. Set primary route to public router
-.. After installation, scp /etc/sysconfig/network/routes from admin to all nodes, then reboot all nodes
-.. Verify that all nodes can ping google.com, admin.example.com, 172.16.200.130
-.. Configure keepalived on the three master nodes:
 . <<anchor-55>>
 . <<anchor-60>>
 . <<anchor-65>>
 . <<anchor-70>>
 . <<anchor-80>>
+
+----
+
+
+
+
+
+
+----
+
+////
+.. Set up primary route to public router
+.. Secondary route to NAT router to the storage VLAN
+////
+////
+.. Set primary route to public router
+.. After installation, scp /etc/sysconfig/network/routes from admin to all nodes, then reboot all nodes
+.. Verify that all nodes can ping google.com, admin.example.com, 172.16.200.130
+.. Configure keepalived on the three master nodes:
+////
+
 
 [[anchor-10]]
 ==== Create an SES RBD image for each physical host
@@ -598,7 +613,6 @@ VAR DATAHUBUSERPASSWORD=myp@ssw0rd
 
 
 
-
 ////
 Will add this back in when CaaSPv4 is released
 Jumphost (the Installation host) must have kubectl and helm installed. Both can be taken from the SUSE-CaaSP-3.0-Pool repository. Take info from Admin node to add the repo to the jumphost.
@@ -656,7 +670,7 @@ sudo docker run -d -p 39013:39013 -p 39017:39017 -p 39041-39045:39041-39045 -p 1
 
 
 ////
-Start fidling with Ironic
+Start experimenting with Ironic
 Jason Douglas, Mike Latimer - 
 ////
 
