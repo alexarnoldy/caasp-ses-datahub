@@ -1,4 +1,6 @@
-This guide is based on a very specific design. The design is intended for Proof of Concept, training and other non-production work. Various aspects of this design can be altered, however configuring *below* the minimum resource allocations for the cluster nodes greatly increases the risk of difficulty troubleshooting errors and failures, as well as the inability to satisfactorily complete the installation. 
+This guide is based on a very specific design. The design is intended for Proof of Concept, training and other non-production work. This is a living document and could change significantly with no notice. The authors and all organizations with which they are affiliated accept no liability for damage, destruction, or loss that might in incurred through the use of this document.
+
+Various aspects of this design can be altered, however configuring *below* the minimum resource allocations for the cluster nodes greatly increases the risk of difficulty troubleshooting errors and failures, as well as the inability to satisfactorily complete the installation. 
 
 .The success of the CaaSP and Data Hub installation relies highly on the diligence of the prepration work. Some important details that must be accomplished before beginning the installation are:
 ////
