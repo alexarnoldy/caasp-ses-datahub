@@ -10,22 +10,20 @@ Various aspects of this design can be altered, however configuring *below* the m
 ** A minimum of 2TB of usable space
 ** The Rados Block Device service
 
-WARNING: A Ceph cluster with a small number of total drives will have an unexpectedly low number of Placement Groups available. Use https://ceph.com/pgcalc/ to calculate the appropriate number of PG's for the SES pools
+WARNING: A Ceph cluster with a small number of drives (OSD's) will have an unexpectedly low number of available Placement Groups. https://ceph.com/pgcalc/ can be used to calculate the appropriate number of PG's for pools on any SES cluster.
 
 * Provide a DNS service configured with resolution for physical hosts as well as all virtual CaaSP nodes
-** The DNS service should also provide a dedicated IP address that resolves to master.example.com and datahub.example.com (can be a single IP address or two different IP addresses)
-** The DNS service should provide FQDN resolution for dhregistry.example.com. This document assumes it is the same IP address as the jumphost, but it can be a separate IP address
-* Configuration of a TLS enabled Portus private container registry (currently via docker-compose, running on the jumphost)
-** In this document the FQDN for the Portus registry is dhregistry.example.com
-* Configuration of a CaaSPv3 cluster with the following minimums:
+** The DNS service should provide a dedicated IP address that resolves to master.example.com and datahub.example.com (can be a single IP address or two different IP addresses)
+** The DNS service should provide FQDN resolution for the private container registry, dhregistry.example.com. This document assumes it is the same IP address as the jumphost, but it can be a separate IP address
+* Configure a TLS enabled Portus private container registry (currently via docker-compose, running on the jumphost)
+* Configure a CaaSPv3 cluster with the following resource minimums:
 ** Four physical hosts, each provisioned with 32 logical CPUs (16 hyper-threaded cores), 64GB of memory, and 128GB of locally attached disk space
+** One jumphost VM, provisioned with 4 vCPUs, 8GB of memory, and 40GB of locally attached disk space
+** One Admin VM node, provisioned with 16 vCPUs, 16GB of memory, and 80GB of SES RBD image disk space
+** Three master VM nodes, each provisioned with 16 vCPUs, 24GB of memory, and 80GB of SES RBD image disk space
+** Four worker VM nodes, each provisioned with 16 vCPUs, 32GB of memory, and 128GB of SES RBD image disk space
 
-** One jumphost VM, provisioned with access to 4 logical CPUs, 8GB of memory, and 80GB of locally attached disk space
-** One Admin VM node, provisioned with access to 16 logical CPUs, 16GB of memory, and 80GB of locally attached disk space
-** Three master VM nodes, each provisioned with access to 16 logical CPUs, 24GB of memory, and 80GB of locally attached disk space
-** Four worker VM nodes, each provisioned with access to 16 logical CPUs, 32GB of memory, and 256GB of locallly attached disk space
-
-TIP: It is recommended that the master and worker nodes be spread across the available physical nodes with one of each on each physical node. The Admin node and jumphost would then be run on the node that doesn't have a master node.
+TIP: It is recommended that the master and worker nodes be spread across the available physical host with one of each deployed per physical host. The Admin node and jumphost would then be run on the host that doesn't have a master node.
 
 TIP: The virtual machine's locally attached disk space can be stored in SES RBD images. In this case, it is recommended that the disk files for the virtual machines assigned to each physical node be stored on a single RBD image. This would result in four RBD images created in the SES cluster, one for each physical node.
 
