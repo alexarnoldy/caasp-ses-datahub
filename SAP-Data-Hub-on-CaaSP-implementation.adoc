@@ -2,14 +2,16 @@ This guide is based on a very specific design. The design is intended for Proof 
 
 Various aspects of this design can be altered, however configuring *below* the minimum resource allocations for the cluster nodes greatly increases the risk of difficulty troubleshooting errors and failures, as well as the inability to satisfactorily complete the installation. 
 
-.The success of the CaaSP and Data Hub installation relies highly on the diligence of the prepration work. Some important details that must be accomplished before beginning the installation are:
+.The success of the CaaSP and Data Hub installation relies highly on the diligence of the prepration work. Some important tasks that must be accomplished before beginning the installation are:
 ////
 * Configuration of a SES storage cluster that provides RBD and Rados Gateway services
 ////
-* Configuration of a SES storage cluster that provides RBD services
+* Configuration of a SES storage cluster that provides:
 ** A minimum of 2TB of usable space
 ** The Rados Block Device service
-*** Use https://ceph.com/pgcalc/ to get the commands to get the appropriate PG numbers for the pools
+
+CAUTION: Use https://ceph.com/pgcalc/ to get the commands to get the appropriate PG numbers for the pools
+
 * DNS service configured with resolution for physical nodes as well as all CaaSP nodes
 ** There should be a dedicated virtual IP address that resolves to master.example.com
 * Configuration of a TLS enabled Portus container registry (currently via docker-compose, running on the jumphost)
