@@ -10,11 +10,12 @@ Various aspects of this design can be altered, however configuring *below* the m
 ** A minimum of 2TB of usable space
 ** The Rados Block Device service
 
-CAUTION: Use https://ceph.com/pgcalc/ to get the commands to get the appropriate PG numbers for the pools
+WARNING: A Ceph cluster with a small number of total drives will have an unexpectedly low number of Placement Groups available. Use https://ceph.com/pgcalc/ to calculate the appropriate number of PG's for the SES pools
 
-* DNS service configured with resolution for physical nodes as well as all CaaSP nodes
-** There should be a dedicated virtual IP address that resolves to master.example.com
-* Configuration of a TLS enabled Portus container registry (currently via docker-compose, running on the jumphost)
+* Provide a DNS service configured with resolution for physical hosts as well as all virtual CaaSP nodes
+** The DNS service should also provide a dedicated IP address that resolves to master.example.com and datahub.example.com (can be a single IP address or two different IP addresses)
+** The DNS service should provide FQDN resolution for dhregistry.example.com. This document assumes it is the same IP address as the jumphost, but it can be a separate IP address
+* Configuration of a TLS enabled Portus private container registry (currently via docker-compose, running on the jumphost)
 ** In this document the FQDN for the Portus registry is dhregistry.example.com
 * Configuration of a CaaSPv3 cluster with the following minimums:
 ** Four physical hosts, each provisioned with 32 logical CPUs (16 hyper-threaded cores), 64GB of memory, and 128GB of locally attached disk space
