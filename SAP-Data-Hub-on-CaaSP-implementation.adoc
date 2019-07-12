@@ -38,6 +38,7 @@ These first steps are omitted until they can be tested and documented
 . Install physical nodes with SLES15 SP1
 . Install physical nodes with SES 6
 ////
+. <<anchor-9>>
 . <<anchor-10>>
 . <<anchor-20>>
 . <<anchor-30>>
@@ -70,9 +71,16 @@ These first steps are omitted until they can be tested and documented
 .. Configure keepalived on the three master nodes:
 ////
 
+[[anchor-09]]
+==== Install SES6
+.TBD-> refer to SES6 installation doc
+
 
 [[anchor-10]]
 ==== Create an SES RBD image for each physical host
+////
+.This procedure assumes the SES cluster has already been configured, and IS NOT running on the same physical hosts as the CaaS Platform cluster. For configurations where the SES and CaaS Platform nodes are running on the same physical hosts, skip forward to <<anchor-15>>
+////
 
 * Set up the host to work with the SES cluster:
 
