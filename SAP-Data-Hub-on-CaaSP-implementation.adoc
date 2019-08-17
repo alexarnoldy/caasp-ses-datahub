@@ -35,8 +35,8 @@ TIP: It is recommended that the virtual machines disk and backup configuration f
 == Outline of steps:
 ////
 These first steps are omitted until they can be tested and documented
-. Install physical nodes with SLES15 SP1
-. Install physical nodes with SES 6
+. Install physical hosts with SLES15 SP1
+. Install physical hosts with SES 6
 ////
 . <<anchor-10>>
 . <<anchor-20>>
