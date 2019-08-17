@@ -38,6 +38,7 @@ These first steps are omitted until they can be tested and documented
 . Install physical hosts with SLES15 SP1
 . Install physical hosts with SES 6
 ////
+. <<anchor-9>>
 . <<anchor-10>>
 . <<anchor-20>>
 . <<anchor-30>>
@@ -70,9 +71,16 @@ These first steps are omitted until they can be tested and documented
 .. Configure keepalived on the three master nodes:
 ////
 
+[[anchor-09]]
+==== Install SES6
+.TBD-> refer to SES6 installation doc
+
 
 [[anchor-10]]
 ==== Create an SES RBD image for each physical host
+////
+.This procedure assumes the SES cluster has already been configured, and IS NOT running on the same physical hosts as the CaaS Platform cluster. For configurations where the SES and CaaS Platform nodes are running on the same physical hosts, skip forward to <<anchor-15>>
+////
 
 * Set up the host to work with the SES cluster:
 
@@ -93,7 +101,7 @@ NOTE: Run the following two commands from each physical host:
 
 ----
 export CephUser="data-hub-infra" CephPool="data-hub-infra-pool"
-ceph auth get-or-create client.${CephUser} mon 'allow r' osd \'allow class-read object_prefix rbd_children, allow rwx pool=${CephPool}\' -o ceph.client.${CephUser}.keyring
+ceph auth get-or-create client.${CephUser} mon "allow r" osd "allow class-read object_prefix rbd_children, allow rwx pool=${CephPool}" -o ceph.client.${CephUser}.keyring
 ----
 
 * Import the keyring for the data-hub-infra user
@@ -138,7 +146,7 @@ NOTE: Run the following eight commands on each physical host
 
 ----
 export Host=`hostname` CephPool="data-hub-infra-pool" CephUser="data-hub-infra"
-sudo bash -c "echo ${CephPool}/${Host}'     'id=${CephUser},keyring=/etc/ceph/ceph.client.${CephUser}.keyring" >> /etc/ceph/rbdmap"
+sudo bash -c "echo ${CephPool}/${Host}'      'id=${CephUser},keyring=/etc/ceph/ceph.client.${CephUser}.keyring >> /etc/ceph/rbdmap"
 sudo bash -c "echo /dev/rbd/${CephPool}/${Host}'     '/mnt/${CephPool}/${Host}'     'ext4'     'noauto'     '0'  '0 >> /etc/fstab"
 sudo mkdir -p /mnt/${CephPool}/${Host}
 sudo rbd map ${CephPool}/${Host}
