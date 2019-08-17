@@ -24,7 +24,19 @@ net.bridge.bridge-nf-filter-vlan-tagged = 0
 * To get vconfig for configuring VLANs on the bridge
 
 `brctl addbr br0`
+
 `vconfig add br0 241`
+
+`ifconfig br0 up`
+`ifconfig br0.241 up`
+`brctl addif br0 eth1`
+`ifconfig eth1 up`
+
+* Use virt-manager to add a new network device with "Specify shared device name", then type `br0`
+
+* When the VM boots up, it will have a single NIC, which is untagged o the native VLAN
+** Use `yast lan` to add VLAN241 and assign an IP address
+
 
 
 
