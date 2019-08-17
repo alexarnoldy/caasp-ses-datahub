@@ -1,0 +1,33 @@
+
+* Host NIC cannot be in any bridges
+** Need to test to see if a host IP can be applied to the bridge after it has been created
+** Need to test to see if the bridge can be built on top of a bond
+
+TIP: Run commands as root
+
+ `vi /etc/sysctl.conf`
+
+* Add:
+net.bridge.bridge-nf-call-ip6tables = 0
+net.bridge.bridge-nf-call-iptables = 0
+net.bridge.bridge-nf-call-arptables = 0
+net.bridge.bridge-nf-filter-pppoe-tagged = 0
+net.bridge.bridge-nf-filter-vlan-tagged = 0
+
+`sysctl -p`
+
+`zypper -n in bridge-utils`
+* To get brctl
+`zypper -n in net-tools-deprecated`
+* To get ifconfig
+`zypper -n in vlan`
+* To get vconfig for configuring VLANs on the bridge
+
+`brctl addbr br0`
+`vconfig add br0 241`
+
+
+
+
+
+// vim: set syntax=asciidoc:
