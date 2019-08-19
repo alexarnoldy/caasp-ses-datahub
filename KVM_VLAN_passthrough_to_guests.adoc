@@ -1,11 +1,12 @@
 
+* Description sas that if VLANs are specifed on the host, the tags will be stripped off, before the packet is directed to that VLAN virtual interface
 * Host NIC cannot be in any bridges
 ** Need to test to see if a host IP can be applied to the bridge after it has been created
 ** Need to test to see if the bridge can be built on top of a bond
 
 TIP: Run commands as root
 
- `vi /etc/sysctl.conf`
+`vi /etc/sysctl.conf`
 
 * Add:
 net.bridge.bridge-nf-call-ip6tables = 0
@@ -16,26 +17,58 @@ net.bridge.bridge-nf-filter-vlan-tagged = 0
 
 `sysctl -p`
 
+////
 `zypper -n in bridge-utils`
+
 * To get brctl
+
 `zypper -n in net-tools-deprecated`
+
 * To get ifconfig
+
 `zypper -n in vlan`
+
 * To get vconfig for configuring VLANs on the bridge
+////
 
-`brctl addbr br0`
+`zypper -n in bridge-utils net-tools-deprecated vlan`
 
-`vconfig add br0 241`
+* To get brctl, ifconfig, and vconfig; respectively
 
-`ifconfig br0 up`
-`ifconfig br0.241 up`
-`brctl addif br0 eth1`
-`ifconfig eth1 up`
+`modprobe 8021q`
+
+`BRIDGE=br240`
+
+`VLAN=241`
+
+`HOST_INTERFACE=bond0`
+
+`brctl addbr $BRIDGE`
+
+`vconfig add $BRIDGE $VLAN`
+
+`ifconfig $BRIDGE up`
+
+`ifconfig $BRIDGE.$VLAN up`
+
+`brctl addif $BRIDGE $HOST_INTERFACE`
+
+`ifconfig $HOST_INTERFACE up`
 
 * Use virt-manager to add a new network device with "Specify shared device name", then type `br0`
 
 * When the VM boots up, it will have a single NIC, which is untagged o the native VLAN
 ** Use `yast lan` to add VLAN241 and assign an IP address
+
+.Adding more VLANs to the bridge:
+
+`BRIDGE=br240`
+
+`VLAN=200`
+
+`vconfig add $BRIDGE $VLAN`
+
+`ifconfig $BRIDGE.$VLAN up`
 
 
 
