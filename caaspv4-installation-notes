@@ -1,0 +1,23 @@
+sudo -i
+Update the hosts file with all nodes
+zypepr -n in autoyast
+yast2 clone_system
+* Note the underscore, not dash
+* Output file is /root/autoinst.xml
+cp -p autoinst.xml infra6.xml
+vi infra6.xml
+* Change 105 (the IP of the base node) to 106 for <ipaddr>
+* Change <hostname> from infra5 to infra6
+** Don't need to change the hosts file entries
+
+scp to deployment host
+
+Deployment host:
+cp infra6.xml to /home/admin/autoyast_templates/infra6.xml
+* Set up docker
+Launch nginx container: docker run --name mynginx  -v /home/admin/autoyast_templates:/usr/share/nginx/html:ro -P -d nginx:latest
+Test from infra5: curl http://<ip of deployment host>:<port of nginx>/infra6.xml
+
+Start system from DVD ISO, stop at DVD GRuB screen
+* Select "Installation"
+* On installation line: `autoyast=http://<ip of deployment host>:<port of nginx>/infra6.xml ifcfg=eth0=<ip of this host>/24,<IP of gateway>,<IP of DNS server,<search domain> hostname=infra6.caaspv4.com
