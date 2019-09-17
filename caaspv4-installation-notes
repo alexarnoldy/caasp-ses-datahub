@@ -6,6 +6,7 @@ Update the DNS file with all nodes
 Install master node:
 Deploy Deployment host O/S: Set IP on Grub line, enable repos: CaaSPv4, Containers, Package Hub
 * Disable Firewall
+* Must have the same user across all nodes. Recommend use sles
 
 .After installation complete:
 * Set up bonded network ports
@@ -21,7 +22,8 @@ vi worker1.xml
 * Change <hostname> from master to worker1
 * scp to deployment host: scp worker1.xml admin@deployer.caaspv4.com:/home/admin/autoyast_templates/worker1.xml
 
-.On the Deployment host:
+.On the Management Workstation:
+* Create the user sles
 * Set up docker
 Launch nginx container: docker run --name mynginx  -v /home/admin/autoyast_templates:/usr/share/nginx/html:ro -P -d nginx:latest
 * Take note of the network port assigned to nginx
