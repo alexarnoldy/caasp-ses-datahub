@@ -10,6 +10,7 @@ Deploy Deployment host O/S: Set IP on Grub line, enable repos: CaaSPv4, Containe
 
 .After installation complete:
 * Set up bonded network ports
+* echo "sles ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 * zypper update
 * zypper in cri-o
 * zypper -n in autoyast
@@ -24,6 +25,7 @@ vi worker1.xml
 
 .On the Management Workstation:
 * Create the user sles
+* echo "sles ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 * Set up docker
 Launch nginx container: docker run --name mynginx  -v /home/admin/autoyast_templates:/usr/share/nginx/html:ro -P -d nginx:latest
 * Take note of the network port assigned to nginx
@@ -42,13 +44,19 @@ Test from master: curl http://deployer.caaspv4.com:<nginx port>/worker1.xml
 **** If not: ssh-keygen
 ***** Accept the defaults
 * Start SSH Agent: eval "$(ssh-agent)"
-* It should automatically import the local user's default key. If not: ssh-add /home/sles/.ssh/id_rsa.pub
+* Check to see if it imported the local user's default key: ssh-add -l
+** If not: ssh-add /home/sles/.ssh/id_rsa.pub
 
 * NOTE: Need to test this: "The product key for SUSE CaaS Platform 4 also contains the activation permissions 
                             for the underlying SUSE Linux Enterprise operating system. You can use your SUSE CaaS 
                             Platform product key to activate the SUSE Linux Enterprise 15 SP1 subscription during installation."
 
 * Install skuba tools: sudo zypper in -t pattern SUSE-CaaSP-Management
+
+* Make sure you are the user sles 
+skuba cluster init --control-plane master.caaspv4.com caaspv4-cluster
+
+
 
 
 
