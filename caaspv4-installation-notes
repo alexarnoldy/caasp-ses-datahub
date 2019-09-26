@@ -13,6 +13,8 @@ Deploy Deployment host O/S: Set IP on Grub line, enable repos: CaaSPv4, Containe
 * Set up bonded network ports
 * echo "sles ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 * Verify proper subscriptions:
+** sudo SUSEConnect -s
+*** SLES must be registered before continuing
 ** sudo SUSEConnect -p sle-module-containers/15.1/x86_64
 ** sudo SUSEConnect -p caasp/4.0/x86_64 -r <CAASP_PRODUCT_KEY>
 * zypper update
@@ -29,7 +31,12 @@ vi worker1.xml
 
 .On the Management Workstation:
 * Create the user sles
-* echo "sles ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+* (as root) echo "sles ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+* Verify proper subscriptions:
+** sudo SUSEConnect -s
+*** SLES must be registered before continuing
+** sudo SUSEConnect -p sle-module-containers/15.1/x86_64
+** sudo SUSEConnect -p caasp/4.0/x86_64 -r <CAASP_PRODUCT_KEY>
 * Set up docker
 Launch nginx container: docker run --name mynginx  -v /home/admin/autoyast_templates:/usr/share/nginx/html:ro -P -d nginx:latest
 * Take note of the network port assigned to nginx
@@ -62,7 +69,7 @@ skuba cluster init --control-plane master.caaspv4.com caaspv4-cluster
 cd caaspv4-cluster/
 
 
-skuba node bootstrap --user sles --sudo --target master.caaspv4.com master.caaspv4.com
+skuba node bootstrap --user sles --sudo --target master.caaspv4.com master
 
 
 
