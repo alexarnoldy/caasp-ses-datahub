@@ -5,12 +5,16 @@ Update the DNS file with all nodes
 
 Install master node:
 Deploy Deployment host O/S: Set IP on Grub line, enable repos: CaaSPv4, Containers, Package Hub
+* Can enable SLES subscription with the CaaS Platform product key
 * Disable Firewall
 * Must have the same user across all nodes. Recommend use sles
 
 .After installation complete:
 * Set up bonded network ports
 * echo "sles ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+* Verify proper subscriptions:
+** sudo SUSEConnect -p sle-module-containers/15.1/x86_64
+** sudo SUSEConnect -p caasp/4.0/x86_64 -r <CAASP_PRODUCT_KEY>
 * zypper update
 * zypper in cri-o
 * zypper -n in autoyast
@@ -55,6 +59,10 @@ Test from master: curl http://deployer.caaspv4.com:<nginx port>/worker1.xml
 
 * Make sure you are the user sles 
 skuba cluster init --control-plane master.caaspv4.com caaspv4-cluster
+cd caaspv4-cluster/
+
+
+skuba node bootstrap --user sles --sudo --target master.caaspv4.com master.caaspv4.com
 
 
 
