@@ -12,6 +12,7 @@ Deploy Deployment host O/S: Set IP on Grub line, enable repos: CaaSPv4, Containe
 .After installation complete:
 * Set up bonded network ports
 * echo "sles ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+* Add the ssh key from the sles user on the Management Workstation to the authorized_keys file
 * Verify proper subscriptions:
 ** sudo SUSEConnect -s
 *** SLES must be registered before continuing
@@ -23,6 +24,14 @@ Deploy Deployment host O/S: Set IP on Grub line, enable repos: CaaSPv4, Containe
 * yast2 clone_system
 ** Note the underscore, not dash
 * Output file is /root/autoinst.xml
+* Need to update the autoinst.xml file with:
+<ntp-client>
+<suse_register>
+<addon>
+
+Need to take note of: The default AutoYaST file provides examples for a disabled 
+root user and a sles user with authorized key SSH access.
+
 cp -p autoinst.xml worker1.xml
 vi worker1.xml
 * Change 105 (the IP of the base node) to 106 for <ipaddr>
