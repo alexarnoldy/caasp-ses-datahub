@@ -1,5 +1,6 @@
+#### CURRENT STATE OF THIS DOCUMENT: Lots of errors, needs to show how to do this with `yast lan` as it's much easier and persistent
 
-* Description sas that if VLANs are specifed on the host, the tags will be stripped off, before the packet is directed to that VLAN virtual interface
+* Description says that if VLANs are specifed on the host, the tags will be stripped off, before the packet is directed to that VLAN virtual interface
 * Host NIC cannot be in any bridges
 ** Need to test to see if a host IP can be applied to the bridge after it has been created
 ** Need to test to see if the bridge can be built on top of a bond
@@ -35,7 +36,8 @@ net.bridge.bridge-nf-filter-vlan-tagged = 0
 
 * To get brctl, ifconfig, and vconfig; respectively
 
-`modprobe 8021q`
+`grep 8021q /proc/modules`
+* Use command `modprobe 8021q` to load the VLAN module, if it's not already loaded
 
 `BRIDGE=br240`
 
@@ -43,17 +45,19 @@ net.bridge.bridge-nf-filter-vlan-tagged = 0
 
 `HOST_INTERFACE=bond0`
 
-`brctl addbr $BRIDGE`
+`sudo brctl addbr $BRIDGE`
 
-`vconfig add $BRIDGE $VLAN`
+`sudo vconfig add $BRIDGE $VLAN`
 
-`ifconfig $BRIDGE up`
+`sudo ifconfig $BRIDGE up`
 
-`ifconfig $BRIDGE.$VLAN up`
+`sudo ip link set $BRIDGE.$VLAN up`
 
-`brctl addif $BRIDGE $HOST_INTERFACE`
+////`sudo ifconfig $BRIDGE.$VLAN up`
 
-`ifconfig $HOST_INTERFACE up`
+`sudo brctl addif $BRIDGE $HOST_INTERFACE`
+
+`sudo ifconfig $HOST_INTERFACE up`
 
 * Use virt-manager to add a new network device with "Specify shared device name", then type `br0`
 
