@@ -1,5 +1,14 @@
-sudo -i
-Update the DNS file with all nodes
+#### CURRENT STAGE OF THIS DOCUMENT: Rapidly changing, highly incomplete, rough notes to self.
+
+.Install the Management Workstation:
+
+* Can be a VM, as long as it has access to the Internet and the cluster network
+* 4 vCPU, 4096MB mem, 20GB qcow2 boot drive in default libvirt location
+* Booting from ISO: Select "Installation" BUT DO NOT PRESS ENTER
+* On "Boot Options:" line: `ifcfg=eth0=172.16.241.200/24,172.16.241.254,172.16.250.2,caaspv4.com hostname=admin.caaspv4.com`
+** Press Enter
+
+
 
 .Install cluster nodes:
 
