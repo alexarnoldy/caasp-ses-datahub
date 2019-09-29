@@ -27,6 +27,16 @@
 
 .Install cluster nodes:
 
+* Current attempt is based around: 
+** Creating an autoyast clone of the Management Workstation
+** Setting up Docker and the nginx webserver
+** Setting up the autoinst.xml file for the cluster nodes
+** AutoYaST installing the Master Node
+** Making needed adjustments, likely just networking
+** Creating an autoyast clone of the Master Node
+** AutoYaST installing the Worker Nodes
+
+
 Install master node:
 Deploy Deployment host O/S: Set IP on Grub line, enable repos: CaaSPv4, Containers, Package Hub
 * Can enable SLES subscription with the CaaS Platform product key
