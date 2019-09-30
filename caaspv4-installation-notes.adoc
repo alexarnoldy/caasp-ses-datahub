@@ -28,6 +28,10 @@
 .Install cluster nodes:
 
 * Current attempt is based around: 
+** Finishing the prep for the Management workstation:
+*** sudo bash -c "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers"
+
+
 ** Creating an autoyast clone of the Management Workstation
 ** Setting up Docker and the nginx webserver
 ** Setting up the autoinst.xml file for the cluster nodes
