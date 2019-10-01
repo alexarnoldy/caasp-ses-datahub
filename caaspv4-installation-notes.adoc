@@ -66,15 +66,16 @@
 ** Setting up Docker and the nginx webserver
 *** sudo zypper -n in docker
 *** sudo systemctl start docker.service && sudo systemctl enable docker.service
-*** Launch nginx container: docker run --name mynginx  -v /home/sles/autoyast_templates:/usr/share/nginx/html:ro -P -d nginx:latest
-**** Take note of the network port assigned to nginx
-*** Test that the master autoyast file is available: `curl http://admin.caaspv4.com:<nginx port>/master.xml`
-** sudo usermod -aG docker sles ; sudo su - sles
+*** sudo usermod -aG docker sles ; sudo su - sles
+*** Launch nginx container: docker run --name autoyast-nginx -v /home/sles/autoyast_templates:/usr/share/nginx/html:ro -P -d nginx:latest
+*** docker ps
+**** Set this variable to the port listed under PORTS: NGINX_PORT=""
+*** Test that the master autoyast file is available: `curl http://admin.caaspv4.com:$NGINX_PORT/master.xml`
 
-** Setting up the autoinst.xml file for the cluster nodes
 ** AutoYaST installing the Master Node
 ** Making needed adjustments, likely just networking
 ** Creating an autoyast clone of the Master Node
+** Copying and adjusting the autoinst.xml file for each worker node
 ** AutoYaST installing the Worker Nodes
 
 
