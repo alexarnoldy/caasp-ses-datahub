@@ -67,6 +67,25 @@
     <slp_discovery config:type="boolean">false</slp_discovery>
   </suse_register>
 
+*** Create the /home/sles/autoyast_post_updates.sh file
+**** `echo "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers" >> /home/sles/autoyast_post_updates.sh`
+*** Add the following element
+  <scripts>
+    <post-scripts config:type="list">
+      <script>
+        <debug config:type="boolean">true</debug>
+        <feedback config:type="boolean">false</feedback>
+        <feedback_type/>
+        <filename>autoyast_post_updates.sh</filename>
+        <interpreter>shell</interpreter>
+        <location><![CDATA[/home/sles/autoyast_templates/autoyast_post_updates.sh]]></location>
+        <notification>Performing_Final_Updates</notification>
+        <param-list config:type="list"/>
+        <source><![CDATA[]]></source>
+      </script>
+    </post-scripts>
+  </scripts>
+
 
 ** Setting up Docker and the nginx webserver
 *** sudo zypper -n in docker
@@ -97,6 +116,11 @@ TIP: In yast, Tab will help you navigate through panes and options. Each option 
 *** ping google.com
 
 ** Creating an autoyast clone of the Master Node
+*** yast2 clone_system
+*** SCP the AutoYaST file to the Management Workstation. This will overwrite the original master.xml file. Make a copy first, if needed.
+**** sudo scp /root/autoinst.xml admin.caaspv4.com:/home/sles/autoyast_templates/master.xml
+
+
 ** Copying and adjusting the autoinst.xml file for each worker node
 ** AutoYaST installing the Worker Nodes
 
