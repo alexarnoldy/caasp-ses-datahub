@@ -68,8 +68,8 @@
   </suse_register>
 
 *** Create the /home/sles/autoyast_post_updates.sh file
-**** `echo "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers" >> /home/sles/autoyast_post_updates.sh`
-*** Add the following element
+**** `echo "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers" >> /home/sles/autoyast_templates/autoyast_post_updates.sh`
+*** Add the following element directly above the <services-manager> element:
   <scripts>
     <post-scripts config:type="list">
       <script>
@@ -86,7 +86,6 @@
     </post-scripts>
   </scripts>
 
-
 ** Setting up Docker and the nginx webserver
 *** sudo zypper -n in docker
 *** sudo systemctl start docker.service && sudo systemctl enable docker.service
@@ -101,27 +100,37 @@
 
 ** Adjust Master Node networking to suit environment. In this document we are creating a bonded network from eth0
     and eth1, then assigning the node's IP address to that bond. Your configuration may be different.
+*** Perform the following steps from the Master Node's conosle:
 TIP: In yast, Tab will help you navigate through panes and options. Each option in yast will have a letter highlighted.
      Using "Alt" + that letter will directly open that option.
-*** sudo yast lan
-*** (Highlight eth0) -> Delete -> OK
-*** sudo yast lan
-*** Add -> Device Type -> Bond -> Next
-*** (Select Statically Assigned IP Address) -> IP Address -> (input the Master Node's IP address)
-*** (Adjust the Subnet Mask, if needed) -> Bonded Slaves -> Yes
-*** (Select both eth0 and eth1) -> Next
-*** Routing -> (Ensure the Device for Default IPv4 Gateway is -) -> OK
-** Verify networking is functioning correctly:
-*** ip a
-*** ping google.com
+**** sudo yast lan
+**** (Highlight eth0) -> Delete -> OK
+**** sudo yast lan
+**** Add -> Device Type -> Bond -> Next
+**** (Select Statically Assigned IP Address) -> IP Address -> (input the Master Node's IP address)
+**** (Adjust the Subnet Mask, if needed) -> Bonded Slaves -> Yes
+**** (Select both eth0 and eth1) -> Next
+**** Routing -> (Ensure the Device for Default IPv4 Gateway is -) -> OK
+*** Verify networking is functioning correctly:
+**** ip a
+**** ping google.com
 
 ** Creating an autoyast clone of the Master Node
-*** yast2 clone_system
+** The following steps can be performed from the Master Node's console or an SSH session
+*** `sudo yast2 clone_system`
 *** SCP the AutoYaST file to the Management Workstation. This will overwrite the original master.xml file. Make a copy first, if needed.
-**** sudo scp /root/autoinst.xml admin.caaspv4.com:/home/sles/autoyast_templates/master.xml
-
+**** ` sudo scp /root/autoinst.xml admin.caaspv4.com:/home/sles/autoyast_templates/master.xml `
 
 ** Copying and adjusting the autoinst.xml file for each worker node
+TIP: Perform the following steps from the Management Workstation as the sles user
+** `cd ~/autoyast_templates/`
+** `cp -p master.xml worker1.xml`
+** `vim worker1.xml`
+*** Search for <\/hostname
+**** Change hostname from master to worker1
+*** Search for <ipaddr
+**** Change the IP address to that of worker1. In this document it is 172.16.241.106
+
 ** AutoYaST installing the Worker Nodes
 
 
