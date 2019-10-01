@@ -30,9 +30,17 @@
 * Current attempt is based around: 
 ** Finishing the prep for the Management workstation:
 *** sudo bash -c "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers"
-
+*** ssh-keygen
+*** cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys
 
 ** Creating an autoyast clone of the Management Workstation
+*** sudo yast2 clone_system
+**** Approve the installation of the AutoYaST2 package
+*** mkdir autoyast_templates
+*** sudo mv /root/autoinst.xml autoyast_templates/master.xml
+*** sudo chmod -R 777 autoyast_templates/
+
+
 ** Setting up Docker and the nginx webserver
 ** Setting up the autoinst.xml file for the cluster nodes
 ** AutoYaST installing the Master Node
