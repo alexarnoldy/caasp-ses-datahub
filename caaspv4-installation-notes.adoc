@@ -1,5 +1,8 @@
 #### CURRENT STAGE OF THIS DOCUMENT: Rapidly changing, highly incomplete, rough notes to self.
 
+.Required preparation that is not yet covered
+* Establish an IP schema for the cluster. In this document, admin is 172.16.241.200, the master and three worker nodes are 172.16.241.105-108
+
 
 .Install the Management Workstation:
 
@@ -32,16 +35,42 @@
 *** sudo bash -c "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers"
 *** ssh-keygen
 *** cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys
+*** sudo yast timezone
+**** other Settings
+**** Synchronize with NTP server
+**** Synchronize now
+**** Run NTP as daemon
+**** Save NTP Configuration
+**** Accept, then OK
 
 ** Creating an autoyast clone of the Management Workstation
 *** sudo yast2 clone_system
 **** Approve the installation of the AutoYaST2 package
 *** mkdir autoyast_templates
-*** sudo mv /root/autoinst.xml autoyast_templates/master.xml
-*** sudo chmod -R 777 autoyast_templates/
-
+*** `sudo mv /root/autoinst.xml ~/autoyast_templates/master.xml`
+*** `sudo chmod -R 777 ~/autoyast_templates/`
+*** cd autoyast_templates/; vim master.xml
+**** Search for <\/hostname
+***** Change hostname from admin to master
+**** Search for <ipaddr
+***** Change the IP address to that of the master. In this document it is 172.16.241.105
+*** Add the following element at the top, right below <profile ... > and update with correct email and reg code
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <email>tux@example.com</email>
+    <reg_code>MY_SECRET_REGCODE</reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    <slp_discovery config:type="boolean">false</slp_discovery>
+  </suse_register>
 
 ** Setting up Docker and the nginx webserver
+*** sudo zypper -n in docker
+*** sudo systemctl start docker.service && sudo systemctl enable docker.service
+*** Launch nginx container: docker run --name mynginx  -v /home/sles/autoyast_templates:/usr/share/nginx/html:ro -P -d nginx:latest
+**** Take note of the network port assigned to nginx
+*** Test that the master autoyast file is available: `curl http://admin.caaspv4.com:<nginx port>/master.xml`
+** sudo usermod -aG docker sles ; sudo su - sles
+
 ** Setting up the autoinst.xml file for the cluster nodes
 ** AutoYaST installing the Master Node
 ** Making needed adjustments, likely just networking
