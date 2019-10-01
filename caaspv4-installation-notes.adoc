@@ -121,15 +121,20 @@ TIP: In yast, Tab will help you navigate through panes and options. Each option 
 *** SCP the AutoYaST file to the Management Workstation. This will overwrite the original master.xml file. Make a copy first, if needed.
 **** ` sudo scp /root/autoinst.xml admin.caaspv4.com:/home/sles/autoyast_templates/master.xml `
 
-** Copying and adjusting the autoinst.xml file for each worker node
+** Copying and adjusting the autoinst.xml file, in turn, for each worker node
 TIP: Perform the following steps from the Management Workstation as the sles user
+TIP: It is recommended to fully install worker1 before continuing to the rest of the Worker Nodes.
+     Once it is shown that worker1 can be fully installed with the AutoYaST configuration, multiple Worker Nodes can be installed simultaneously.
+** Set a variable containing the name of the worker node: `WORKER=""`
 ** `cd ~/autoyast_templates/`
-** `cp -p master.xml worker1.xml`
-** `vim worker1.xml`
+** `cp -p master.xml $WORKER.xml`
+** `vim $WORKER.xml`
 *** Search for <\/hostname
-**** Change hostname from master to worker1
+**** Change hostname from master to the correct Worker Node name
 *** Search for <ipaddr
-**** Change the IP address to that of worker1. In this document it is 172.16.241.106
+**** Change the IP address to that of the correct Worker Node name. 
+*** Set this variable to the port listed under PORTS: NGINX_PORT=""
+*** Test that the master autoyast file is available: `curl http://admin.caaspv4.com:$NGINX_PORT/$WORKER.xml`
 
 ** AutoYaST installing the Worker Nodes
 
