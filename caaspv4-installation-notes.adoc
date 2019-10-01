@@ -54,6 +54,10 @@
 ***** Change hostname from admin to master
 **** Search for <ipaddr
 ***** Change the IP address to that of the master. In this document it is 172.16.241.105
+**** Search for <device>\/dev
+***** If the Master Node is a VM, ensure this device is /dev/vda
+***** If the Master Node is a bare-metal server, ensure this device is /dev/sda
+*** If the Master Node is a VM, remove the line `<service>spice-vdagentd</service>`
 *** Add the following element at the top, right below <profile ... > and update with correct email and reg code
   <suse_register>
     <do_registration config:type="boolean">true</do_registration>
