@@ -127,16 +127,14 @@ TIP: In yast, Tab will help you navigate through panes and options. Each option 
 *** SCP the AutoYaST file to the Management Workstation. This will overwrite the original master.xml file. Make a copy first, if needed.
 **** ` sudo scp /root/autoinst.xml admin.caaspv4.com:/home/sles/autoyast_templates/master.xml `
 
-** Copying and adjusting the autoinst.xml file, in turn, for each worker node
+.Copy and adjust the autoinst.xml file, in turn, for each worker node
 TIP: Perform the following steps from the Management Workstation as the sles user
-TIP: It is recommended to fully install worker1 before continuing to the rest of the Worker Nodes.
-     Once it is shown that worker1 can be fully installed with the AutoYaST configuration, multiple Worker Nodes can be installed simultaneously.
 ** Set a variable containing the name of the worker node: `WORKER=""`
+** `cd ~/autoyast_templates/`
+** `cp -p master.xml $WORKER.xml`
 ////
 Need to change these to sed -i statements
 ////
-** `cd ~/autoyast_templates/`
-** `cp -p master.xml $WORKER.xml`
 ** `vim $WORKER.xml`
 *** Search for <\/hostname
 **** Change hostname from master to the correct Worker Node name
@@ -145,11 +143,19 @@ Need to change these to sed -i statements
 *** Set this variable to the port listed under PORTS: NGINX_PORT=""
 *** Test that the master autoyast file is available: `curl http://admin.caaspv4.com:$NGINX_PORT/$WORKER.xml`
 
-** AutoYaST installing the Worker Nodes
+.AutoYaST install worker1
+TIP: It is recommended to fully install worker1 before continuing to the rest of the Worker Nodes.
+     Once it is shown that worker1 can be fully installed with the AutoYaST configuration, multiple Worker Nodes can be installed simultaneously.
 ** Provide the SLES 15 SP1 DVD1 installer DVD or ISO to the VM or host BIOS
 ** On Installation line: `autoyast=http://admin.caaspv4.com:<nginx port>/<worker node name>.xml ifcfg=eth0=<IP of worker node>/24,<IP of gateway>,<IP of DNS server,<search domain> hostname=<worker node name>.caaspv4.com
 
+.AutoYaST install the rest of the Worker Nodes
+* Repeat the previous step, "AutoYast install worker1" for each of the remaining Worker Nodes
 
+
+
+
+////
 Install master node:
 Deploy Deployment host O/S: Set IP on Grub line, enable repos: CaaSPv4, Containers, Package Hub
 * Can enable SLES subscription with the CaaS Platform product key
@@ -214,9 +220,6 @@ Test from master: curl http://deployer.caaspv4.com:<nginx port>/worker1.xml
 * Check to see if it imported the local user's default key: ssh-add -l
 ** If not: ssh-add /home/sles/.ssh/id_rsa.pub
 
-* NOTE: Need to test this: "The product key for SUSE CaaS Platform 4 also contains the activation permissions 
-                            for the underlying SUSE Linux Enterprise operating system. You can use your SUSE CaaS 
-                            Platform product key to activate the SUSE Linux Enterprise 15 SP1 subscription during installation."
 
 * Install skuba tools: sudo zypper in -t pattern SUSE-CaaSP-Management
 
@@ -226,7 +229,7 @@ cd caaspv4-cluster/
 
 
 skuba node bootstrap --user sles --sudo --target master.caaspv4.com master
-
+////
 
 
 
