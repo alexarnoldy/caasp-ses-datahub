@@ -68,7 +68,7 @@
   </suse_register>
 
 *** Create the /home/sles/autoyast_post_updates.sh file
-**** `echo "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/01sles" >> /home/sles/autoyast_templates/autoyast_post_updates.sh`
+**** ` echo "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/01sles" >> /home/sles/autoyast_templates/autoyast_post_updates.sh `
 
 *** Add the following element directly above the <services-manager> element:
 *** In the URL below, change the port number 32768 to the port number of your nginx container
@@ -155,7 +155,15 @@ TIP: It is recommended to fully install worker1 before continuing to the rest of
 .AutoYaST install the rest of the Worker Nodes
 * Repeat the previous step, "AutoYast install worker1" for each of the remaining Worker Nodes
 
-
+.Preparation for forming CaaS Platform cluster
+* `eval "$(ssh-agent)"`
+* `ssh-add /home/sles/.ssh/id_rsa`
+* Verify passwordless SSH and sudo capabilities for the sles user on all nodes
+** `for EACH in master worker1 worker2 worker3; do ssh $EACH sudo hostname; done`
+*** Should return each hostname with no additional interaction required
+* Ensure CaaS Platform version 4 is registered
+** `for EACH in master worker1 worker2 worker3; do echo $EACH; ssh $EACH sudo SUSEConnect -s; echo ""; done`
+*** Will likely show "status":"Not Registered" for all subscriptions except for SLES
 
 
 ////
