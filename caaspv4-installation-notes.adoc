@@ -141,7 +141,7 @@ Need to change these to sed -i statements (or even better, xmlstarlet)
 *** Search for <\/hostname
 **** Change hostname from master to the correct Worker Node name
 *** Search for <ipaddr
-**** Change the IP address to that of the correct Worker Node name. 
+**** Change the IP address to that of the correct Worker Node
 *** Set this variable to the port listed under PORTS: NGINX_PORT=""
 *** Test that the master autoyast file is available: `curl http://admin.caaspv4.com:$NGINX_PORT/$WORKER.xml`
 
@@ -161,10 +161,10 @@ TIP: It is recommended to fully install worker1 before continuing to the rest of
 * Verify passwordless SSH and sudo capabilities for the sles user on all nodes
 ** `for EACH in master worker1 worker2 worker3; do ssh $EACH sudo hostname; done`
 *** Should return each hostname with no additional interaction required
-* Ensure CaaS Platform version 4 is registered
+* Set this variable to the CaaS Platform registration code: REGCODE=""
+* Resister SLES 15 SP1, CaaS Platfrom version 4.0.0, and the Containers Module: for EACH in master worker1 worker2 worker3; do echo $EACH; ssh $EACH sudo SUSEConnect -r $REGCODE && sudo SUSEConnect -p sle-module-containers/15.1/x86_64 && sudo SUSEConnect -p caasp/4.0/x86_64 -r $REGCODE; echo ""; done
+* Ensure correct products are registered
 ** `for EACH in master worker1 worker2 worker3; do echo $EACH; ssh $EACH sudo SUSEConnect -s; echo ""; done`
-*** Will likely show "status":"Not Registered" for all subscriptions except for SLES
-
 
 ////
 Install master node:
