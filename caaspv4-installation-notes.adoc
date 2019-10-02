@@ -1,8 +1,8 @@
 #### CURRENT STAGE OF THIS DOCUMENT: Rapidly changing, highly incomplete, rough notes to self.
 
 .Required preparation that is not yet covered
-* Establish an IP schema for the cluster. In this document, admin is 172.16.241.200, the master and three worker nodes are 172.16.241.105-108
-
+* Establish an IP schema for the cluster. In this document, admin (aka Management Workstation) is 172.16.241.200, the master and three worker nodes are 172.16.241.105-108
+* Populate DNS records that are available to the cluster nodes
 
 .Install the Management Workstation:
 
@@ -34,7 +34,7 @@
 ** Finishing the prep for the Management workstation:
 *** sudo bash -c "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers"
 *** ssh-keygen
-*** cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys
+*** cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
 *** sudo yast timezone
 **** other Settings
 **** Synchronize with NTP server
@@ -118,7 +118,10 @@ TIP: In yast, Tab will help you navigate through panes and options. Each option 
 **** ip a
 **** ping google.com
 
-** Creating an autoyast clone of the Master Node
+.Add Master Node SSH key to its authorized_keys file so it will be included in the AutoYaST clone file
+* cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+
+.Creating an AutoYaST clone of the Master Node
 ** The following steps can be performed from the Master Node's console or an SSH session
 *** `sudo yast2 clone_system`
 *** SCP the AutoYaST file to the Management Workstation. This will overwrite the original master.xml file. Make a copy first, if needed.
