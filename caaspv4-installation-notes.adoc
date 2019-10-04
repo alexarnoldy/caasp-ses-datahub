@@ -123,11 +123,13 @@ First step is to install with: `SUSE-CaaSP-Management`
 .AutoYaST install the Master Node
 * Provide the SLES 15 SP1 DVD1 installer DVD or ISO to the VM or host BIOS
 * Start the Master Node from DVD ISO,  Select "Installation" at DVD GRuB screen, but DO NOT PRESS ENTER
-* On Boot Options line: `autoyast=http://admin.caaspv4.com:<nginx port>/master.xml ifcfg=eth0=<IP of master>/24,<IP of gateway>,<IP of DNS server>,<search domain> hostname=master.caaspv4.com
+* On Boot Options line: `autoyast=http://admin.caaspv4.com:<nginx port>/master.xml ifcfg=eth0=<IP of master>/24,<IP of gateway>,<IP of DNS server>,caaspv4.com hostname=master.caaspv4.com
 
 .After Master Node completes installation, Adjust its networking to suit environment. 
-* In this document we are creating a bonded network from eth0
-    and eth1, then assigning the node's IP address to that bond. Your configuration may be different.
+* Note: This document shows the procdure for creating a bonded network from eth0
+    and eth1, then assigning the node's IP address to that bond 
+** Your configuration may be different
+** VM CaaS Platform nodes will likely not need any network modifications
 * Perform the following steps from the Master Node's conosle:
 TIP: In yast, Tab will help you navigate through panes and options. Each option in yast will have a letter highlighted.
      Using "Alt" + that letter will directly open that option.
@@ -144,7 +146,9 @@ TIP: In yast, Tab will help you navigate through panes and options. Each option 
 ** ping google.com
 
 .Add Master Node SSH key to its own authorized_keys file so it will be included in the AutoYaST clone file
-* cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+* `ssh-keygen`
+** Accept the defaults
+* `cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys`
 
 .Creating an AutoYaST clone of the Master Node
 ** The following steps can be performed from the Master Node's console or an SSH session
@@ -173,7 +177,7 @@ TIP: It is recommended to fully install worker1 before continuing to the rest of
      Once it is shown that worker1 can be fully installed with the AutoYaST configuration, multiple Worker Nodes can be installed simultaneously.
 * Provide the SLES 15 SP1 DVD1 installer DVD or ISO to the VM or host BIOS
 * Start the worker1 from DVD ISO,  Select "Installation" at DVD GRuB screen, but DO NOT PRESS ENTER
-** On Boot Options line: `autoyast=http://admin.caaspv4.com:<nginx port>/<worker node name>.xml ifcfg=eth0=<IP of worker node>/24,<IP of gateway>,<IP of DNS server,<search domain> hostname=<worker node name>.caaspv4.com
+** On Boot Options line: `autoyast=http://admin.caaspv4.com:<nginx port>/<worker node name>.xml ifcfg=eth0=<IP of worker node>/24,<IP of gateway>,<IP of DNS server,caaspv4.com hostname=<worker node name>.caaspv4.com
 
 .AutoYaST install the rest of the Worker Nodes
 * Repeat the previous step, "AutoYast install worker1" for each of the remaining Worker Nodes
@@ -204,9 +208,21 @@ Shouldn't be needed now as registration seems to be working with AutoYaST
 ** `ssh-add /home/sles/.ssh/id_rsa`
 * `cd caaspv4-cluster`
 * `skuba node bootstrap --user sles --sudo --target master.caaspv4.com master`
-** Note this command bootstraps the CaaS Platform cluster with master.caaspv4.com as the first (in this case, only) master node. Internally, Kubernetes will know this node as "master"
+** Note this command bootstraps the CaaS Platform cluster with master.caaspv4.com as the first (in this case, the only) master node. Internally, Kubernetes will assign this node the name "master"
 
 
+.Final step, after verifying the cluster integrity, will be to copy worker1.xml to master.xml and changing the hostname/IP address
+
+.Troubleshooting failed bootstrap
+* ssh to master and `sudo less /var/log/messages` 
+* Search for kub
+* Follow the progression of the skuba command and kubeadm
+** Generally skuba will install the packages, then launch kubeadm
+** kubeadm will set up the K8s components
+** If the failure occurs after kubeadm takes over try to replicate the failure:
+*** scp kubeadm-init.conf from the cluster directory (caaspv4-cluster in this doc) to /tmp on the master node
+*** Run the `kubeadm init` command that is in /var/log/messages
+*** kubeadm should give reasonably actionable error messages
 
 ////
 Install master node:
