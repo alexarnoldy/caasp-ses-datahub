@@ -232,6 +232,17 @@ Shouldn't be needed now as registration seems to be working with AutoYaST
 *** kubeadm should give reasonably actionable error messages
 
 ////
+Attempting to remove 
+
+      <listentry>
+        <media_url><![CDATA[https://updates.suse.com/SUSE/Products/SLE-Module-Desktop-Applications/15-SP1/x86_64/product?9trsj7edtRfu9WCXT306BpiN0fZwdFl5lM58YR9IbP8R2lFMVeVcg1dQiQDRaDKBwVDOryCY8_BOHrbIsJolgDWtYjjb4n7frm6GUdKdejeP25yStZJs7xhx6OJL8JYnHrSJme-kAZS96LjWeN1hScWDWuZIA52XNZnsub6j7ugcpA]]></media_url>
+        <product>sle-module-desktop-applications</product>
+        <product_dir>/</product_dir>
+      </listentry>
+
+from the xml file, without removing the various packages
+
+////
 Install master node:
 Deploy Deployment host O/S: Set IP on Grub line, enable repos: CaaSPv4, Containers, Package Hub
 * Can enable SLES subscription with the CaaS Platform product key
