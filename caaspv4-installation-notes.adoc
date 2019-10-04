@@ -1,7 +1,7 @@
 #### CURRENT STAGE OF THIS DOCUMENT: Rapidly changing, highly incomplete, rough notes to self.
 
 .Required preparation that is not yet covered
-* Establish an IP schema for the cluster. In this document, admin (aka Management Workstation) is 172.16.241.200, the master and three worker nodes are 172.16.241.105-108
+* Establish an IP schema for the cluster. In this document, the Management Workstation (aka admin.caaspv4.com) is 172.16.241.200, the master and three worker nodes are 172.16.241.105-108
 * Populate DNS records that are available to the cluster nodes
 
 .Install the Management Workstation:
@@ -16,7 +16,10 @@
 *** SUSE CaaS Platform 4.0 
 **** Should automatically enable Basesystem Module and Containers Module
 *** SUSE Package Hub
-*** Desktop Applications Module (Only if you want a desktop available on the Management Workstation)
+*** Desktop Applications Module
+**** Note: A desktop environment is not needed for this installation
+           If you want a desktop environment on the Management Workstation, all of the CaaS Platform nodes will also have one
+           There are ways around this, but they are outside the scope of this document
 *** Legacy Module
 * For partitioning, select Guided Setup
 ** Keep defaults except deselect "Enable Swap"
@@ -116,6 +119,7 @@ First step is to install with: `SUSE-CaaSP-Management`
 *** sudo systemctl start docker.service && sudo systemctl enable docker.service
 *** sudo usermod -aG docker sles ; sudo su - sles
 *** Launch nginx container: docker run --name autoyast-nginx -v /home/sles/autoyast_templates:/usr/share/nginx/html:ro -P -d nginx:latest
+**** Note: This container will not automatically start after rebooting the Management Workstation. Use `docker start autoyast-nginx` to start it manually
 *** docker ps
 **** Set this variable to the port listed under PORTS (i.e. 32768): NGINX_PORT=""
 *** Test that the master autoyast file is available: `curl http://admin.caaspv4.com:$NGINX_PORT/master.xml`
