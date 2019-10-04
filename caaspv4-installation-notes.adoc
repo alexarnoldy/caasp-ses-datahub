@@ -21,7 +21,7 @@
 * For partitioning, select Guided Setup
 ** Keep defaults except deselect "Enable Swap"
 *** Note: Swap will likely not be needed for the Management Workstation
-**** CAUTION: If you choose to enable swap for the Management Workstation, you MUST remove it from the AutoYaST clone file for the CaaS Platform nodes
+**** CAUTION: If you choose to enable swap for the Management Workstation, you MUST remove it from the AutoYaST clone file for the CaaS Platform nodes. Swap is incompatible with Kubernetes
 * Create New User:
 ** User's Full Name and Username: sles
 ** Select "Use this password for system administrator" and Automatic Login
@@ -144,6 +144,13 @@ TIP: In yast, Tab will help you navigate through panes and options. Each option 
 * Verify networking is functioning correctly:
 ** ip a
 ** ping google.com
+
+.Ensure the Master Node does not have swap enabled. Swap is incompatible with Kubernetes
+* `cat /proc/swaps`
+** Should return a header line, but nothing else
+* `grep swap /etc/fstab`
+** Should return nothing
+*** If swap is enabled, remote the swap line from the /etc/fstab file and reboot
 
 .Add Master Node SSH key to its own authorized_keys file so it will be included in the AutoYaST clone file
 * `ssh-keygen`
