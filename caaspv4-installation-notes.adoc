@@ -19,7 +19,9 @@
 *** Desktop Applications Module (Only if you want a desktop available on the Management Workstation)
 *** Legacy Module
 * For partitioning, select Guided Setup
-** Keep defaults except deselect "Enlarge to RAM Size for Suspend"
+** Keep defaults except deselect "Enable Swap"
+*** Note: Swap will likely not be needed for the Management Workstation
+**** CAUTION: If you choose to enable swap for the Management Workstation, you MUST remove it from the AutoYaST clone file for the CaaS Platform nodes
 * Create New User:
 ** User's Full Name and Username: sles
 ** Select "Use this password for system administrator" and Automatic Login
@@ -30,35 +32,36 @@
 
 .Install cluster nodes:
 
-* Current attempt is based around: 
-** Finishing the prep for the Management workstation:
-*** sudo bash -c "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers"
-*** ssh-keygen
-*** cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
-*** sudo yast timezone
-**** other Settings
-**** Synchronize with NTP server
-**** Synchronize now
-**** Run NTP as daemon
-**** Save NTP Configuration
-**** Accept, then OK
+* Finish preparing the Management workstation:
+** `sudo bash -c "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers"`
+** `ssh-keygen`
+** `cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys`
+*** This is the eaisest way to insert the Management Workstation's SSH key into the AutoYaST clone file
+** `sudo yast timezone`
+*** `other Settings`
+*** `Synchronize with NTP server`
+*** `Synchronize now`
+*** `Run NTP as daemon`
+*** `Save NTP Configuration`
+*** `Accept`, then `OK`
 
-** Creating an autoyast clone of the Management Workstation
-*** sudo yast2 clone_system
-**** Approve the installation of the AutoYaST2 package
-*** mkdir autoyast_templates
-*** `sudo mv /root/autoinst.xml ~/autoyast_templates/master.xml`
-*** `sudo chmod -R 777 ~/autoyast_templates/`
+* Creat an AutoYaST clone file of the Management Workstation
+** `sudo yast2 clone_system`
+*** Approve the installation of the AutoYaST2 package
+** `mkdir autoyast_templates`
+** `sudo mv /root/autoinst.xml ~/autoyast_templates/master.xml`
+** `sudo chmod -R 777 ~/autoyast_templates/`
+
 ////
 Need to use xmlstarlet for all of the XML changes
 First step is to install with: `SUSE-CaaSP-Management`
 ////
-*** cd autoyast_templates/; vim master.xml
+*** `cd autoyast_templates/; vim master.xml`
 **** Search for <\/hostname
 ***** Change hostname from admin to master
-**** Search for <ipaddr
+**** Search for `<ipaddr`
 ***** Change the IP address to that of the master. In this document it is 172.16.241.105
-**** Search for <device>\/dev
+**** Search for `<device>\/dev`
 ***** If the Master Node is a VM, ensure this device is /dev/vda
 ***** If the Master Node is a bare-metal server, ensure this device is /dev/sda
 *** If the Master Node is a VM, remove the line `<service>spice-vdagentd</service>`
@@ -69,6 +72,22 @@ First step is to install with: `SUSE-CaaSP-Management`
     <reg_code>MY_SECRET_REGCODE</reg_code>
     <install_updates config:type="boolean">true</install_updates>
     <slp_discovery config:type="boolean">false</slp_discovery>
+    <addons config:type="list">
+      <addon>
+        <!-- Containers Module -->
+        <name>sle-module-containers</name>
+        <version>15.1</version>
+        <arch>x86_64</arch>
+      </addon>
+      <addon>
+        <!-- SUSE CaaS Platform -->
+        <!-- Depends on: Containers Module -->
+        <name>caasp</name>
+        <version>4.0</version>
+        <arch>x86_64</arch>
+        <reg_code>INTERNAL-USE-ONLY-edb63983c126b059</reg_code>
+      </addon>
+    </addons>
   </suse_register>
 
 *** Create the /home/sles/autoyast_post_updates.sh file
@@ -175,9 +194,18 @@ Shouldn't be needed now as registration seems to be working with AutoYaST
 * Ensure "caasp","version":"4.0", "SLES","version":"15.1", and "sle-module-containers","version":"15.1" are registered
 ** `for EACH in master worker1 worker2 worker3; do echo $EACH; ssh $EACH sudo SUSEConnect -s | egrep --color "caasp|SLES|containers|\"Registered\"" && echo"" && echo "Press Enter for next system" && read NEXT; done`
 
-.Prepare to bootstrap the cluster
-* `sudo zypper install SUSE-CaaSP-Management`
+.Bootstrap the cluster
+* On the Management Workstation:
 * `sudo zypper in -t pattern SUSE-CaaSP-Management`
+* `skuba cluster init --control-plane master.caaspv4.com caaspv4-cluster`
+** Note: Since we haven't created a load balancer, we are tying our control plane directly to the master node
+* Ensure the SSH Agent is running and has the sles user's RSA key loaded
+** `eval "$(ssh-agent)"`
+** `ssh-add /home/sles/.ssh/id_rsa`
+* `cd caaspv4-cluster`
+* `skuba node bootstrap --user sles --sudo --target master.caaspv4.com master`
+** Note this command bootstraps the CaaS Platform cluster with master.caaspv4.com as the first (in this case, only) master node. Internally, Kubernetes will know this node as "master"
+
 
 
 ////
