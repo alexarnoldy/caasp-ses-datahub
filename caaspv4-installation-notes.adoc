@@ -49,6 +49,10 @@
 *** mkdir autoyast_templates
 *** `sudo mv /root/autoinst.xml ~/autoyast_templates/master.xml`
 *** `sudo chmod -R 777 ~/autoyast_templates/`
+////
+Need to use xmlstarlet for all of the XML changes
+First step is to install with: `SUSE-CaaSP-Management`
+////
 *** cd autoyast_templates/; vim master.xml
 **** Search for <\/hostname
 ***** Change hostname from admin to master
@@ -162,13 +166,19 @@ TIP: It is recommended to fully install worker1 before continuing to the rest of
 ** `for EACH in master worker1 worker2 worker3; do ssh $EACH sudo hostname; done`
 *** Should return each hostname with no additional interaction required
 
-//// Shouldn't be needed now as registration seems to be working with AutoYaST
+//// 
+Shouldn't be needed now as registration seems to be working with AutoYaST
 * Set this variable to the CaaS Platform registration code: REGCODE=""
 * Resister SLES 15 SP1, CaaS Platfrom version 4.0.0, and the Containers Module: for EACH in master worker1 worker2 worker3; do echo $EACH; ssh $EACH sudo SUSEConnect -r $REGCODE; ssh $EACH sudo SUSEConnect -p sle-module-containers/15.1/x86_64; ssh $EACH sudo SUSEConnect -p caasp/4.0/x86_64 -r $REGCODE; echo ""; done
 //// 
 
 * Ensure "caasp","version":"4.0", "SLES","version":"15.1", and "sle-module-containers","version":"15.1" are registered
 ** `for EACH in master worker1 worker2 worker3; do echo $EACH; ssh $EACH sudo SUSEConnect -s | egrep --color "caasp|SLES|containers|\"Registered\"" && echo"" && echo "Press Enter for next system" && read NEXT; done`
+
+.Prepare to bootstrap the cluster
+* `sudo zypper install SUSE-CaaSP-Management`
+* `sudo zypper in -t pattern SUSE-CaaSP-Management`
+
 
 ////
 Install master node:
