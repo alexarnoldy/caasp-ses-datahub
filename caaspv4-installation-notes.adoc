@@ -241,7 +241,10 @@ TIP: It is recommended to fully install worker1 before continuing to the rest of
 * `cd ~/caaspv4-cluster/`
 * `skuba cluster status`
 
-
+.Enable the use of kubectl from the Management Workstation
+* `echo export KUBECONFIG=/home/sles/caaspv4-cluster/admin.conf >> ~/.bashrc`
+* `. ~/.bashrc` 
+* `kubectl get nodes`
 
 .Troubleshooting failed bootstrap
 * ssh to master and `sudo less /var/log/messages` 
