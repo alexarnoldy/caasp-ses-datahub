@@ -1,4 +1,5 @@
 #### CURRENT STAGE OF THIS DOCUMENT: Rapidly changing, somewhat incomplete, likely brittle do to lots of automation based on this specific configuration
+## Last updated: 2019.10.05, early AM PDT
 
 .Required preparation that is not yet covered
 * Establish an IP schema for the cluster. In this document, the Management Workstation (aka admin.caaspv4.com) is 172.16.241.200, the master and three worker nodes are 172.16.241.105-108
@@ -176,7 +177,11 @@ TIP: Perform the following steps from the Management Workstation as the sles use
 Need to change these to xmlstarlet
 To select hostname: xml sel -t -m "//_:networking/_:dns" -v _:hostname FILENAME.xml
 
-* `for EACH in 1 2 3; do xml ed -L -u "//_:networking/_:dns/_:hostname" -v worker$EACH worker$EACH.xml; done`
+* Change the hostname property for each Worker Node
+** `for EACH in 1 2 3; do xml ed -L -u "//_:networking/_:dns/_:hostname" -v worker$EACH worker$EACH.xml; done`
+* Verify that getent returns the correct IP addresses and hostnames. If not, DO NOT run the following command
+** `for EACH in 1 2 3; do getent hosts worker$EACH; done`
+
 ////
 ** `for EACH in 1 2 3; do vim worker$EACH.xml; done`
 *** Search for <\/hostname
