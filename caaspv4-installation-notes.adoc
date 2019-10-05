@@ -174,21 +174,28 @@ TIP: Perform the following steps from the Management Workstation as the sles use
 
 .Edit each Worker Node XML file to update the hostname and IP address
 ////
-Need to change these to xmlstarlet
-To select hostname: xml sel -t -m "//_:networking/_:dns" -v _:hostname FILENAME.xml
+Note: Due to the "<profile xmlns=" default namespace declaration in the AutoYaST file, xmlstarlet selects and edits follow a different format:
+To select the hostname: xml sel -t -m "//_:networking/_:dns" -v _:hostname FILENAME.xml
+To update the hostname: xml ed -L -u "//_:networking/_:dns/_:hostname" -v <new hostname> FILENAME.xml
+////
 
-* Change the hostname property for each Worker Node
+* Change the hostname value for each Worker Node
 ** `for EACH in 1 2 3; do xml ed -L -u "//_:networking/_:dns/_:hostname" -v worker$EACH worker$EACH.xml; done`
-* Verify that getent returns the correct IP addresses and hostnames. If not, DO NOT run the following command
+* Verify that getent returns the correct IP addresses and hostnames. If not, DO NOT run the subsequent xml ed for loop
 ** `for EACH in 1 2 3; do getent hosts worker$EACH; done`
+* Change the ipaddr value for each Worker Node's external interface
+** Set this variable to the Master Node's IP address: MASTERIP=""
+** `for EACH in 1 2 3; do WORKERIP=`getent hosts worker$EACH | awk '{print$1}'`; sed -i "s/$MASTERIP/$WORKERIP/" worker$EACH.xml; done`
 
 ////
+This was the manual way to update hostname and IP address
 ** `for EACH in 1 2 3; do vim worker$EACH.xml; done`
 *** Search for <\/hostname
 **** Change hostname from master to the correct Worker Node name
 *** Search for <ipaddr
 **** Change the IP address to that of the correct Worker Node
 *** Use the command `:x` to save the file and move on the the next
+////
 
 .Test that each Worker Node XML file is available through the nginx webserver
 * `docker ps`
