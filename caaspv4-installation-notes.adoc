@@ -55,21 +55,28 @@ CAUTION: If you choose to enable swap for the Management Workstation, you MUST r
 ** `sudo mv /root/autoinst.xml ~/autoyast_templates/master.xml`
 ** `sudo chmod -R 777 ~/autoyast_templates/`
 
+.Update the master.xml AutoYaST file with the correct hostname and IP address
+* `cd autoyast_templates/`
+* Verify that getent returns the correct IP address and hostname. If not, DO NOT run the subsequent `xml ed` and `sed` commands
+** `getent hosts master`
+* Update hostname in the master.xml file: xml ed -L -u "//_:networking/_:dns/_:hostname" -v master master.xml
+** Set this variable to the Management Workstation's IP address: MANAGEMENTIP=""
+** `MASTERIP=`getent hosts master | awk '{print$1}'`; sed -i "s/$MANAGEMENTIP/$MASTERIP/" master.xml`
+
 ////
-Need to use xmlstarlet for all of the XML changes
-First step is to install with: `SUSE-CaaSP-Management`
-////
+Manual way of updating hostname and IP address
 *** `cd autoyast_templates/; vim master.xml`
 **** Search for <\/hostname
 ***** Change hostname from admin to master
 **** Search for `<ipaddr`
 ***** Change the IP address to that of the master. In this document it is 172.16.241.105
-**** Search for `<device>\/dev`
-***** If the Master Node is a VM, ensure this device is /dev/vda
-***** If the Master Node is a bare-metal server, ensure this device is /dev/sda
-*** If the Master Node is a VM, remove the line `<service>spice-vdagentd</service>`
-*** Add the following element at the top, right below <profile ... > and update with correct email and reg code
-
+////
+* `cd autoyast_templates/; vim master.xml`
+** Search for `<device>\/dev`
+*** If the Master Node is a VM, ensure this device is /dev/vda
+*** If the Master Node is a bare-metal server, ensure this device is /dev/sda
+* If the Master Node is a VM, remove the line `<service>spice-vdagentd</service>`
+* Add the following element at the top, right below <profile ... > and update with correct email and reg code
 ----
   <suse_register>
     <do_registration config:type="boolean">true</do_registration>
@@ -279,7 +286,7 @@ TIP: It is recommended to fully install worker1 before continuing to the rest of
 
 
 ////
-THESE ARE BASED ON PREVIOUS, FAILED ATTEMPTS. DO NOT USE!!!!!!
+THIS WORK IS BASED ON PREVIOUS, FAILED ATTEMPTS. DO NOT USE!!!!!!
 Install master node:
 Deploy Deployment host O/S: Set IP on Grub line, enable repos: CaaSPv4, Containers, Package Hub
 * Can enable SLES subscription with the CaaS Platform product key
