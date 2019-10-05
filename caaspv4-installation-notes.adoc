@@ -33,9 +33,8 @@ CAUTION: If you choose to enable swap for the Management Workstation, you MUST r
 * Install
 
 
-.Install cluster nodes:
 
-* Finish preparing the Management workstation:
+.Finish preparing the Management workstation:
 ** `sudo bash -c "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers"`
 ** `ssh-keygen`
 ** `cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys`
@@ -48,7 +47,7 @@ CAUTION: If you choose to enable swap for the Management Workstation, you MUST r
 *** `Save NTP Configuration`
 *** `Accept`, then `OK`
 
-* Creat an AutoYaST clone file of the Management Workstation
+.Create an AutoYaST clone file of the Management Workstation
 ** `sudo yast2 clone_system`
 *** Approve the installation of the AutoYaST2 package
 ** `mkdir autoyast_templates`
@@ -175,6 +174,7 @@ TIP: Perform the following steps from the Management Workstation as the sles use
 .Edit each Worker Node XML file to update the hostname and IP address
 ////
 Need to change these to xmlstarlet
+To select hostname: xml sel -t -m "//_:networking/_:dns" -v _:hostname FILENAME.xml
 ////
 ** `for EACH in 1 2 3; do vim worker$EACH.xml; done`
 *** Search for <\/hostname
