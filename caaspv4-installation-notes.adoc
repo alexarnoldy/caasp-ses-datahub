@@ -1,4 +1,4 @@
-#### CURRENT STAGE OF THIS DOCUMENT: Rapidly changing, highly incomplete, rough notes to self.
+#### CURRENT STAGE OF THIS DOCUMENT: Rapidly changing, somewhat incomplete, likely brittle do to lots of automation based on this specific configuration
 
 .Required preparation that is not yet covered
 * Establish an IP schema for the cluster. In this document, the Management Workstation (aka admin.caaspv4.com) is 172.16.241.200, the master and three worker nodes are 172.16.241.105-108
@@ -168,13 +168,15 @@ TIP: In yast, Tab will help you navigate through panes and options. Each option 
 
 .Create copies of the master.xml file for each Worker Node
 TIP: Perform the following steps from the Management Workstation as the sles user
-** `cd ~/autoyast_templates/`
-** `for EACH in 1 2 3; do cp -p master.xml worker$EACH.xml; done`
+* `cd ~/autoyast_templates/`
+* `for EACH in 1 2 3; do cp -p master.xml worker$EACH.xml; done`
 
 .Edit each Worker Node XML file to update the hostname and IP address
 ////
 Need to change these to xmlstarlet
 To select hostname: xml sel -t -m "//_:networking/_:dns" -v _:hostname FILENAME.xml
+
+* `for EACH in 1 2 3; do xml ed -L -u "//_:networking/_:dns/_:hostname" -v worker$EACH worker$EACH.xml; done`
 ////
 ** `for EACH in 1 2 3; do vim worker$EACH.xml; done`
 *** Search for <\/hostname
