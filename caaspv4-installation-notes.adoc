@@ -10,7 +10,9 @@
 * 4 vCPU, 4096MB mem, 20GB qcow2 boot drive in default libvirt location
 * Booting from ISO: Select "Installation" BUT DO NOT PRESS ENTER
 * On "Boot Options:" line: `ifcfg=eth0=172.16.241.200/24,172.16.241.254,172.16.250.2,caaspv4.com hostname=admin.caaspv4.com`
-** Press Enter
+** Format of ifcfg=eth0 is <node IP address/cidr mask>,<default gateway>,<primary DNS server>,<search domain>
+* Press Enter
+IMPORTANT: Use the CaaS Platform subscription key, not the SLES subscription key to register all CaaS Platform nodes, including the Management Workstation
 * Use the CaaS Platform subscription key to register SLES 15 SP1
 ** Enable the following repositories:
 *** SUSE CaaS Platform 4.0 
@@ -22,7 +24,7 @@
 * For partitioning, select Guided Setup
 ** Keep defaults except deselect "Enable Swap"
 *** Note: Swap will likely not be needed for the Management Workstation
-**** CAUTION: If you choose to enable swap for the Management Workstation, you MUST remove it from the AutoYaST clone file for the CaaS Platform nodes. Swap is incompatible with Kubernetes
+CAUTION: If you choose to enable swap for the Management Workstation, you MUST remove it from the AutoYaST clone file for the CaaS Platform nodes. Swap is incompatible with Kubernetes
 * Create New User:
 ** User's Full Name and Username: sles
 ** Select "Use this password for system administrator" and Automatic Login
