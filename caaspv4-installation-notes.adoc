@@ -230,10 +230,15 @@ TIP: It is recommended to fully install worker1 before continuing to the rest of
 * `cd ~/caaspv4-cluster`
 * `WORKER_FQDN="worker1.caaspv4.com"`
 * `WORKER="worker1"`
-* `skuba node join --role worker --user sles --sudo --target $WORKER_FQDN $WORKER
+* `skuba node join --role worker --user sles --sudo --target $WORKER_FQDN $WORKER`
 
 .Join each of the remain worker nodes to the cluster
 * Repeat the previous step "Join worker1 to the cluster" for each of the remaining worker nodes, replacing worker1 with that node's name
+
+.Verify the status of the cluster
+* `cd ~/caaspv4-cluster/`
+* `skuba cluster status`
+
 
 
 .Troubleshooting failed bootstrap
