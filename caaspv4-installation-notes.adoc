@@ -223,6 +223,13 @@ Shouldn't be needed now as registration seems to be working with AutoYaST
 * `skuba node bootstrap --user sles --sudo --target master.caaspv4.com master`
 ** Note this command bootstraps the CaaS Platform cluster with master.caaspv4.com as the first (in this case, the only) master node. Internally, Kubernetes will assign this node the name "master"
 
+.Join worker1 to the cluster
+* `WORKER_FQDN="worker1.caaspv4.com"`
+* `WORKER="worker1"`
+* `skuba node join --role worker --user sles --sudo --target $WORKER_FQDN $WORKER
+
+.Join each of the remain worker nodes to the cluster
+* Repeat the previous step "Join worker1 to the cluster" for each of the remaining worker nodes, replacing worker1 with that node's name
 
 .Final step, after verifying the cluster integrity, will be to copy worker1.xml to master.xml and changing the hostname/IP address
 
