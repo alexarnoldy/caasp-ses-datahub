@@ -15,12 +15,10 @@
 ** Enable the following repositories:
 *** SUSE CaaS Platform 4.0 
 **** Should automatically enable Basesystem Module and Containers Module
-*** SUSE Package Hub
 *** Desktop Applications Module
 **** Note: A desktop environment is not needed for this installation
            If you want a desktop environment on the Management Workstation, all of the CaaS Platform nodes will also have one
            There are ways around this, but they are outside the scope of this document
-*** Legacy Module
 * For partitioning, select Guided Setup
 ** Keep defaults except deselect "Enable Swap"
 *** Note: Swap will likely not be needed for the Management Workstation
@@ -206,8 +204,12 @@ Shouldn't be needed now as registration seems to be working with AutoYaST
 * Resister SLES 15 SP1, CaaS Platfrom version 4.0.0, and the Containers Module: for EACH in master worker1 worker2 worker3; do echo $EACH; ssh $EACH sudo SUSEConnect -r $REGCODE; ssh $EACH sudo SUSEConnect -p sle-module-containers/15.1/x86_64; ssh $EACH sudo SUSEConnect -p caasp/4.0/x86_64 -r $REGCODE; echo ""; done
 //// 
 
-* Ensure "caasp","version":"4.0", "SLES","version":"15.1", and "sle-module-containers","version":"15.1" are registered
-** `for EACH in master worker1 worker2 worker3; do echo $EACH; ssh $EACH sudo SUSEConnect -s | egrep --color "caasp|SLES|containers|\"Registered\"" && echo"" && echo "Press Enter for next system" && read NEXT; done`
+.Ensure caasp, SLES, basesystem, and containers are all "Registered"
+* `for EACH in master worker1 worker2 worker3; do echo $EACH; ssh $EACH sudo SUSEConnect -s | egrep --color "caasp|SLES|basesystem|containers|\"Registered\"" && echo"" && echo "Press Enter for next system" && read NEXT; done`
+
+.Ensure swap is not enabled on any of the CaaS Platform hosts
+* `for EACH in master worker1 worker2 worker3; do echo $EACH; ssh $EACH cat /proc/swaps; echo ""; done`
+** Should return a header line for each node, but nothing else
 
 .Bootstrap the cluster
 * On the Management Workstation:
