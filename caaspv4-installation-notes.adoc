@@ -165,21 +165,27 @@ TIP: In yast, Tab will help you navigate through panes and options. Each option 
 *** SCP the AutoYaST file to the Management Workstation. This will overwrite the original master.xml file. Make a copy first, if needed.
 **** ` sudo scp /root/autoinst.xml admin.caaspv4.com:/home/sles/autoyast_templates/master.xml `
 
-.Copy and adjust the autoinst.xml file, in turn, for each worker node
+.Create copies of the master.xml file for each Worker Node
 TIP: Perform the following steps from the Management Workstation as the sles user
-** Set a variable containing the name of the worker node: `WORKER=""`
 ** `cd ~/autoyast_templates/`
-** `cp -p master.xml $WORKER.xml`
+** `for EACH in 1 2 3; do cp -p master.xml worker$EACH.xml; done`
+
+.Edit each Worker Node XML file to update the hostname and IP address
 ////
-Need to change these to sed -i statements (or even better, xmlstarlet)
+Need to change these to xmlstarlet
 ////
-** `vim $WORKER.xml`
+** `for EACH in 1 2 3; do vim worker$EACH.xml; done`
 *** Search for <\/hostname
 **** Change hostname from master to the correct Worker Node name
 *** Search for <ipaddr
 **** Change the IP address to that of the correct Worker Node
-*** Set this variable to the port listed under PORTS: NGINX_PORT=""
-*** Test that the master autoyast file is available: `curl http://admin.caaspv4.com:$NGINX_PORT/$WORKER.xml`
+*** Use the command `:x` to save the file and move on the the next
+
+.Test that each Worker Node XML file is available through the nginx webserver
+* `docker ps`
+* Set this variable to the port listed under PORTS: NGINX_PORT=""
+* Test that each Worker Node autoyast file is available: `for EACH in 1 2 3; do curl http://admin.caaspv4.com:$NGINX_PORT/worker$EACH.xml | egrep "<hostname|ipaddr"; done`
+** Verify each hostname and IP address is correct for each Worker Node
 
 .AutoYaST install worker1
 TIP: It is recommended to fully install worker1 before continuing to the rest of the Worker Nodes.
@@ -198,12 +204,6 @@ TIP: It is recommended to fully install worker1 before continuing to the rest of
 ** `for EACH in master worker1 worker2 worker3; do ssh $EACH sudo hostname; done`
 *** Should return each hostname with no additional interaction required
 
-//// 
-Shouldn't be needed now as registration seems to be working with AutoYaST
-* Set this variable to the CaaS Platform registration code: REGCODE=""
-* Resister SLES 15 SP1, CaaS Platfrom version 4.0.0, and the Containers Module: for EACH in master worker1 worker2 worker3; do echo $EACH; ssh $EACH sudo SUSEConnect -r $REGCODE; ssh $EACH sudo SUSEConnect -p sle-module-containers/15.1/x86_64; ssh $EACH sudo SUSEConnect -p caasp/4.0/x86_64 -r $REGCODE; echo ""; done
-//// 
-
 .Ensure caasp, SLES, basesystem, and containers are all "Registered"
 * `for EACH in master worker1 worker2 worker3; do echo $EACH; ssh $EACH sudo SUSEConnect -s | egrep --color "caasp|SLES|basesystem|containers|\"Registered\"" && echo"" && echo "Press Enter for next system" && read NEXT; done`
 
@@ -219,11 +219,15 @@ Shouldn't be needed now as registration seems to be working with AutoYaST
 * Ensure the SSH Agent is running and has the sles user's RSA key loaded
 ** `eval "$(ssh-agent)"`
 ** `ssh-add /home/sles/.ssh/id_rsa`
-* `cd caaspv4-cluster`
+* `cd ~/caaspv4-cluster`
 * `skuba node bootstrap --user sles --sudo --target master.caaspv4.com master`
 ** Note this command bootstraps the CaaS Platform cluster with master.caaspv4.com as the first (in this case, the only) master node. Internally, Kubernetes will assign this node the name "master"
 
 .Join worker1 to the cluster
+* Ensure the SSH Agent is running and has the sles user's RSA key loaded
+** `eval "$(ssh-agent)"`
+** `ssh-add /home/sles/.ssh/id_rsa`
+* `cd ~/caaspv4-cluster`
 * `WORKER_FQDN="worker1.caaspv4.com"`
 * `WORKER="worker1"`
 * `skuba node join --role worker --user sles --sudo --target $WORKER_FQDN $WORKER
@@ -231,7 +235,6 @@ Shouldn't be needed now as registration seems to be working with AutoYaST
 .Join each of the remain worker nodes to the cluster
 * Repeat the previous step "Join worker1 to the cluster" for each of the remaining worker nodes, replacing worker1 with that node's name
 
-.Final step, after verifying the cluster integrity, will be to copy worker1.xml to master.xml and changing the hostname/IP address
 
 .Troubleshooting failed bootstrap
 * ssh to master and `sudo less /var/log/messages` 
@@ -244,18 +247,9 @@ Shouldn't be needed now as registration seems to be working with AutoYaST
 *** Run the `kubeadm init` command that is in /var/log/messages
 *** kubeadm should give reasonably actionable error messages
 
-////
-Attempting to remove 
-
-      <listentry>
-        <media_url><![CDATA[https://updates.suse.com/SUSE/Products/SLE-Module-Desktop-Applications/15-SP1/x86_64/product?9trsj7edtRfu9WCXT306BpiN0fZwdFl5lM58YR9IbP8R2lFMVeVcg1dQiQDRaDKBwVDOryCY8_BOHrbIsJolgDWtYjjb4n7frm6GUdKdejeP25yStZJs7xhx6OJL8JYnHrSJme-kAZS96LjWeN1hScWDWuZIA52XNZnsub6j7ugcpA]]></media_url>
-        <product>sle-module-desktop-applications</product>
-        <product_dir>/</product_dir>
-      </listentry>
-
-from the xml file, without removing the various packages
 
 ////
+THESE ARE BASED ON PREVIOUS, FAILED ATTEMPTS. DO NOT USE!!!!!!
 Install master node:
 Deploy Deployment host O/S: Set IP on Grub line, enable repos: CaaSPv4, Containers, Package Hub
 * Can enable SLES subscription with the CaaS Platform product key
