@@ -1,5 +1,5 @@
 #### CURRENT STAGE OF THIS DOCUMENT: Rapidly changing, somewhat incomplete, likely brittle do to lots of automation based on this specific configuration
-## Last updated: 2019.10.05, early AM PDT
+## Last updated: 2019.10.06, AM PDT
 
 .Required preparation that is not yet covered
 * Establish an IP schema for the cluster. In this document, the Management Workstation (aka admin.caaspv4.com) is 172.16.241.200, the master and three worker nodes are 172.16.241.105-108
@@ -71,10 +71,11 @@ Manual way of updating hostname and IP address
 **** Search for `<ipaddr`
 ***** Change the IP address to that of the master. In this document it is 172.16.241.105
 ////
+* Update the correct boot drive for the Master Node
+CAUTION: The following steps assume that the first drive to be probed is the Master Node's boot drive. If this is not the case, edit the AutoYaST file manually to set the correct boot drive
+** If the Master Node is a VM, run this command: `xml ed -L -u "//_:partitioning/_:drive/_:device"[1] -v "/dev/vda" master.xml`
+** If the Master Node is a bare-metal server, run this command: `xml ed -L -u "//_:partitioning/_:drive/_:device"[1] -v "/dev/sda" master.xml`
 * `cd autoyast_templates/; vim master.xml`
-** Search for `<device>\/dev`
-*** If the Master Node is a VM, ensure this device is /dev/vda
-*** If the Master Node is a bare-metal server, ensure this device is /dev/sda
 * If the Master Node is a VM, remove the line `<service>spice-vdagentd</service>`
 * Add the following element at the top, right below <profile ... > and update with correct email and reg code
 ----
