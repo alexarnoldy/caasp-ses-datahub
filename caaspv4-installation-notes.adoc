@@ -189,8 +189,10 @@ EOF
 ** Your configuration may be different
 ** VM CaaS Platform nodes will likely not need any network modifications
 * Perform the following steps from the Master Node's conosle:
+
 TIP: In yast, Tab will help you navigate through panes and options. Each option in yast will have a letter highlighted.
      Using "Alt" + that letter will directly open that option.
+
 ** sudo yast lan
 ** (Highlight eth0) -> Delete -> OK
 ** sudo yast lan
