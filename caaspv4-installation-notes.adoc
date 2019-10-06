@@ -17,6 +17,7 @@ NOTE: The Management Workstation can be a VM or bare-metal host, regardless of t
 * Press Enter
 
 IMPORTANT: Use the CaaS Platform subscription key, not the SLES subscription key to register all CaaS Platform nodes, including the Management Workstation
+
 * Use the CaaS Platform subscription key to register SLES 15 SP1
 ** Enable the following repositories:
 *** SUSE CaaS Platform 4.0 
