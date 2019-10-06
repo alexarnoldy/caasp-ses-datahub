@@ -1,6 +1,8 @@
 #### CURRENT STAGE OF THIS DOCUMENT: Rapidly changing, somewhat incomplete, likely brittle do to lots of automation based on this specific configuration
 ## Last updated: 2019.10.06, AM PDT
 
+NOTE: The Management Workstation can be a VM or bare-metal host, regardless of the platform of the Master and Worker Nodes. The Master and Worker Nodes may be VM's or bare-metal hosts, but it cannot be a mixture of VM's and bare-metal hosts.
+
 .Required preparation that is not yet covered
 * Establish an IP schema for the cluster. In this document, the Management Workstation (aka admin.caaspv4.com) is 172.16.241.200, the master and three worker nodes are 172.16.241.105-108
 * Populate DNS records that are available to the cluster nodes
@@ -13,6 +15,7 @@
 * On "Boot Options:" line: `ifcfg=eth0=172.16.241.200/24,172.16.241.254,172.16.250.2,caaspv4.com hostname=admin.caaspv4.com`
 ** Format of ifcfg=eth0 is <node IP address/cidr mask>,<default gateway>,<primary DNS server>,<search domain>
 * Press Enter
+
 IMPORTANT: Use the CaaS Platform subscription key, not the SLES subscription key to register all CaaS Platform nodes, including the Management Workstation
 * Use the CaaS Platform subscription key to register SLES 15 SP1
 ** Enable the following repositories:
@@ -60,7 +63,7 @@ CAUTION: If you choose to enable swap for the Management Workstation, you MUST r
 * Verify that getent returns the correct IP address and hostname. If not, DO NOT run the subsequent `xml ed` and `sed` commands
 ** `getent hosts master`
 * Update hostname in the master.xml file: xml ed -L -u "//_:networking/_:dns/_:hostname" -v master master.xml
-** Set this variable to the Management Workstation's IP address: MANAGEMENTIP=""
+** Set this variable to the Management Workstation's IP address (i.e. 172.16.241.105): MANAGEMENTIP=""
 ** `MASTERIP=`getent hosts master | awk '{print$1}'`; sed -i "s/$MANAGEMENTIP/$MASTERIP/" master.xml`
 
 ////
@@ -72,11 +75,12 @@ Manual way of updating hostname and IP address
 ***** Change the IP address to that of the master. In this document it is 172.16.241.105
 ////
 * Update the correct boot drive for the Master Node
+
 CAUTION: The following steps assume that the first drive to be probed is the Master Node's boot drive. If this is not the case, edit the AutoYaST file manually to set the correct boot drive
 ** If the Master Node is a VM, run this command: `xml ed -L -u "//_:partitioning/_:drive/_:device"[1] -v "/dev/vda" master.xml`
 ** If the Master Node is a bare-metal server, run this command: `xml ed -L -u "//_:partitioning/_:drive/_:device"[1] -v "/dev/sda" master.xml`
 * `cd autoyast_templates/; vim master.xml`
-* If the Master Node is a VM, remove the line `<service>spice-vdagentd</service>`
+* If the Master Node is a VM, run this command: xml ed -L -d "//_:services-manager/_:services/_:enable/_:service[text()='spice-vdagentd']"  autoinst.xml
 * Add the following element at the top, right below <profile ... > and update with correct email and reg code
 ----
   <suse_register>
