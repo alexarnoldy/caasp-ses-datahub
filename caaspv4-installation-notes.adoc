@@ -29,7 +29,9 @@ IMPORTANT: Use the CaaS Platform subscription key, not the SLES subscription key
 * For partitioning, select Guided Setup
 ** Keep defaults except deselect "Enable Swap"
 *** Note: Swap will likely not be needed for the Management Workstation
+
 CAUTION: If you choose to enable swap for the Management Workstation, you MUST remove it from the AutoYaST clone file for the CaaS Platform nodes. Swap is incompatible with Kubernetes
+
 * Create New User:
 ** User's Full Name and Username: sles
 ** Select "Use this password for system administrator" and Automatic Login
@@ -78,6 +80,7 @@ Manual way of updating hostname and IP address
 * Update the correct boot drive for the Master Node
 
 CAUTION: The following steps assume that the first drive to be probed is the Master Node's boot drive. If this is not the case, edit the AutoYaST file manually to set the correct boot drive
+
 ** If the Master Node is a VM, run this command: `xml ed -L -u "//_:partitioning/_:drive/_:device"[1] -v "/dev/vda" master.xml`
 ** If the Master Node is a bare-metal server, run this command: `xml ed -L -u "//_:partitioning/_:drive/_:device"[1] -v "/dev/sda" master.xml`
 * `cd autoyast_templates/; vim master.xml`
