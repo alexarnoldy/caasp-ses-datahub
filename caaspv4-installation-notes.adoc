@@ -262,7 +262,8 @@ This was the manual way to update hostname and IP address
 ** Verify each hostname and IP address is correct for each Worker Node
 
 .AutoYaST install worker1
-
+////
+////
 TIP: It is recommended to fully install worker1 before continuing to the rest of the Worker Nodes.
      Once it is shown that worker1 can be fully installed with the AutoYaST configuration, multiple Worker Nodes can be installed simultaneously.
 
