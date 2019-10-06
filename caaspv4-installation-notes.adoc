@@ -102,7 +102,7 @@ CAUTION: The following steps assume that the first drive to be probed is the Mas
         <name>caasp</name>
         <version>4.0</version>
         <arch>x86_64</arch>
-        <reg_code>INTERNAL-USE-ONLY-edb63983c126b059</reg_code>
+        <reg_code>MY_SECRET_REGCODE</reg_code>
       </addon>
     </addons>
   </suse_register>
