@@ -108,6 +108,38 @@ CAUTION: The following steps assume that the first drive to be probed is the Mas
   </suse_register>
 ----
 
+////
+* Create the XML block to register CaaS Platform 4.0
+----
+cat <<EOF> reg_code.xml 
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <email>tux@example.com</email>
+    <reg_code>MY_SECRET_REGCODE</reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    <slp_discovery config:type="boolean">false</slp_discovery>
+    <addons config:type="list">
+      <addon>
+        <!-- Containers Module -->
+        <name>sle-module-containers</name>
+        <version>15.1</version>
+        <arch>x86_64</arch>
+      </addon>
+      <addon>
+        <!-- SUSE CaaS Platform -->
+        <!-- Depends on: Containers Module -->
+        <name>caasp</name>
+        <version>4.0</version>
+        <arch>x86_64</arch>
+        <reg_code>MY_SECRET_REGCODE</reg_code>
+      </addon>
+    </addons>
+  </suse_register>
+EOF
+----
+
+////
+
 *** Create the /home/sles/autoyast_post_updates.sh file
 **** ` echo "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/01sles" >> /home/sles/autoyast_templates/autoyast_post_updates.sh `
 
