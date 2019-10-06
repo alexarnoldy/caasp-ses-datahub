@@ -1,5 +1,5 @@
 #### CURRENT STAGE OF THIS DOCUMENT: Rapidly changing, somewhat incomplete, likely brittle do to lots of automation based on this specific configuration
-## Last updated: 2019.10.06, AM PDT
+## Last updated: 2019.10.06, late AM PDT
 
 NOTE: The Management Workstation can be a VM or bare-metal host, regardless of the platform of the Master and Worker Nodes. The Master and Worker Nodes may be VM's or bare-metal hosts, but it cannot be a mixture of VM's and bare-metal hosts.
 
