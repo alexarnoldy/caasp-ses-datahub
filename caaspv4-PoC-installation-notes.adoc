@@ -34,9 +34,11 @@ IMPORTANT: Use the CaaS Platform subscription key, not the SLES subscription key
 *** SUSE CaaS Platform 4.0 
 **** Should automatically enable Basesystem Module and Containers Module
 *** Desktop Applications Module
-**** Note: A desktop environment is not needed for this installation
-           If you want a desktop environment on the Management Workstation, all of the CaaS Platform nodes will also have one
-           There are ways around this, but they are outside the scope of this document
+
+NOTE: A desktop environment is not needed for this installation. 
+      If you want a desktop environment on the Management Workstation, all of the CaaS Platform nodes will also have one. 
+      There are ways around this, but they are outside the scope of this document.
+
 * For partitioning, select Guided Setup
 ** Keep defaults except deselect "Enable Swap"
 *** Note: Swap will likely not be needed for the Management Workstation
