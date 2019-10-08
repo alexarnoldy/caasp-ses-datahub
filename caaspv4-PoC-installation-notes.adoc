@@ -11,7 +11,7 @@ NOTE: Unlike CaaS Platform v3, the Management Workstation for CaaS Platform v4 i
       A Management Workstation can be used to deploy one or more CaaS Platform clusters and a CaaS Platform cluster can be managed from the 
       Management Workstation that deployed it and/or another appropriately configured Management Workstation.
 
-CAUTION: This guide can be used as a reference while deploying different configurations, but deviating from these instructions will cause unpredicable results
+CAUTION: This guide can be used as a reference while deploying different configurations, but deviating from the specified design will cause unpredicable results
 
 
 .Required preparation that is not yet covered
