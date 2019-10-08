@@ -1,0 +1,14 @@
+#### Format will be to create SES6 PoC installation notes (as of yet not created) here, then link https://github.com/alexarnoldy/caasp-ses-datahub/blob/master/caaspv4-installation-notes.adoc
+
+CAUTION: All changes to the CaaSP4v procedures will be made in the linked document. All changes to the SES6 procedures will be made here.
+
+
+
+
+
+
+
+
+
+
+// vim: set syntax=asciidoc:

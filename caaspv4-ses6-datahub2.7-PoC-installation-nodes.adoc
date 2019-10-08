@@ -1,0 +1,12 @@
+#### Format will be to link SES6 PoC installation notes (as of yet not created), then link the CaaSPv4 PoC installation notes: https://github.com/alexarnoldy/caasp-ses-datahub/blob/master/caaspv4-installation-notes.adoc, then create Data Hub v2.7 PoC installation steps (which will include CaaSP integration) here
+
+CAUTION: All changes to the CaaSPv4 and SES6 procedures will be made in the linked document. All changes to the Data Hub v2.7 procedures will be made here.
+
+
+
+
+
+
+
+
+// vim: set syntax=asciidoc:
