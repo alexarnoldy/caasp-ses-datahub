@@ -1,11 +1,15 @@
-### CURRENT STAGE OF THIS DOCUMENT: Rapidly changing, somewhat incomplete, likely brittle do to lots of automation based on this specific configuration
-#### Last updated: 2019.10.07, late AM PDT
+### CURRENT STAGE OF THIS DOCUMENT: Occasionally changing, possibly incomplete, likely brittle do to lots of automation based on this specific configuration
+#### Last updated: 2019.10.08, late AM PDT
 
 #### This document is a strictly guided, step-by-step implementation of a specific configuration based on the CaaS Platform v4.0.0 Deployment Guide: https://documentation.suse.com/suse-caasp/4/single-html/caasp-deployment/
 * This specific configuration is based on five nodes:
 ** Management Workstation - VM or bare-metal host
 ** One CaaS Platform Master Node - VM or bare-metal host
 ** Three CaaS Platform Worker Nodes - Must be same as Master Node
+
+NOTE: Unlike CaaS Platform v3, the Management Workstation for CaaS Platform v4 is not tied in a 1:1 relationship with the CaaS Platform cluster.
+      A Management Workstation can be used to deploy one or more CaaS Platform clusters and a CaaS Platform cluster can be managed from the 
+      Management Workstation that deployed it and/or another appropriately configured Management Workstation.
 
 CAUTION: This guide can be used as a reference while deploying different configurations, but deviating from these instructions will cause unpredicable results
 
