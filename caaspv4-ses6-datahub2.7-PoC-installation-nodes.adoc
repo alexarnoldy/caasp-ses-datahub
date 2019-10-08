@@ -2,6 +2,21 @@
 
 CAUTION: All changes to the CaaSPv4 and SES6 procedures will be made in the linked document. All changes to the Data Hub v2.7 procedures will be made here.
 
+* May want to try installing v2.6 if 2.7 is delayed by too much
+** Some CRI-O notes from this doc: https://access.redhat.com/articles/4324391
+*** 4.2 Kaniko Image Builder
+
+By default, Pipeline Modeler (vflow) pod uses Docker Daemon on the node, where it runs, to build container images before they are run. This was possible on OCP releases prior to 4.0. Since then, OCP uses CRI-O containter runtime.
+
+To enable Pipeline Modeler to build images on recent OCP releases, it must be configured to use kaniko image builder. This is achieved by passing --enable-kaniko=yes parameter to the install.sh script during the manual installation. For the other installation methods, one can enable it by appending --enable-kaniko=yes to SLP_EXTRA_PARAMETERS (Additional Installation Parameters).
+4.2.1. Registry requirements for the Kaniko Image Builder
+
+The Kaniko Image Builder supports out-of-the-box only connections to secure image registries with a certificate signed by a trusted certificate authority.
+
+In order to use an insecure image registry (e.g. the proposed external image registry) in combination with the builder, the registry must be whitelisted in Pipeline Modeler by marking it as insecure.
+
+* cri-o cheat sheet: https://cheatsheet.dennyzhang.com/cheatsheet-crio-a4
+
 
 
 
