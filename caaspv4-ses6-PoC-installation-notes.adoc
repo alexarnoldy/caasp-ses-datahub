@@ -1,6 +1,20 @@
+### CURRENT STAGE OF THIS DOCUMENT: Rapidly changing, highly incomplete, based on a four node configuration, though only three nodes are available at the time of this writing, likely brittle do to lots of automation based on this specific configuration.
+#### Last updated: 2019.10.10, PM PDT
+
+#### This document is a strictly guided, step-by-step implementation of a specific configuration based on the SUSE Enterprise Storage 6 Deployment Guide: https://documentation.suse.com/suse-caasp/4/single-html/caasp-deployment/
+* This specific configuration is based on four nodes:
+** Administrative Workstation - VM or bare-metal host
+** Four OSD Nodes - bare-metal hosts
+** Three Monitor Nodes - collocated with the first three OSD Nodes
+** One RGW Node - collocated it the fourth OSD Node
 #### Format will be to create SES6 PoC installation notes (as of yet not created) here, then link https://github.com/alexarnoldy/caasp-ses-datahub/blob/master/caaspv4-installation-notes.adoc
 
 CAUTION: All changes to the CaaSP4v procedures will be made in the linked document. All changes to the SES6 procedures will be made here.
+
+.Architecture for this run is only based on three nodes, yet doc will be written to support four nodes
+* Monitors will run on the three nodes alongside the OSDs
+* A RGW will run on the fourth node (third node in this architecture)
+
 
 
 
