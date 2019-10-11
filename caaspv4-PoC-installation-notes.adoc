@@ -59,17 +59,17 @@ IMPORTANT: It is recommended to use a secure password that will work with all el
 
 
 .Finish preparing the Management workstation:
-** `sudo bash -c "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers"`
-** `ssh-keygen`
-** `cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys`
-*** This is the eaisest way to insert the Management Workstation's SSH key into the AutoYaST clone file
-** `sudo yast timezone`
-*** `other Settings`
-*** `Synchronize with NTP server`
-*** `Synchronize now`
-*** `Run NTP as daemon`
-*** `Save NTP Configuration`
-*** `Accept`, then `OK`
+* `sudo bash -c "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/01sles"`
+* `ssh-keygen`
+* `cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys`
+** This is the eaisest way to insert the Management Workstation's SSH key into the AutoYaST clone file
+* `sudo yast timezone`
+** `other Settings`
+** `Synchronize with NTP server`
+** `Synchronize now`
+** `Run NTP as daemon`
+** `Save NTP Configuration`
+** `Accept`, then `OK`
 
 .Create an AutoYaST clone file of the Management Workstation
 ** `sudo yast2 clone_system`
@@ -79,6 +79,7 @@ IMPORTANT: It is recommended to use a secure password that will work with all el
 ** `sudo chmod -R 777 ~/autoyast_templates/`
 
 .Update the master.xml AutoYaST file with the correct hostname and IP address
+* `sudo zypper -n in xmlstarlet`
 * `cd autoyast_templates/`
 * Verify that getent returns the correct IP address and hostname. If not, DO NOT run the subsequent `xml ed` and `sed` commands
 ** `getent hosts master`
