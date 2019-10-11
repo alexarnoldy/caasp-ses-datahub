@@ -40,10 +40,10 @@ NOTE: A desktop environment is not needed for this installation.
       There are ways around this, but they are outside the scope of this document.
 
 * For partitioning, select Guided Setup
-** Keep defaults except deselect "Enable Swap"
+** Keep defaults except deselect "Propose Separate Swap Partition"
 *** Note: Swap will likely not be needed for the Management Workstation
 
-CAUTION: If you choose to enable swap for the Management Workstation, you MUST remove it from the AutoYaST clone file for the CaaS Platform nodes. Swap is incompatible with Kubernetes
+CAUTION: If you choose to create a swap partition for the Management Workstation, you MUST remove it from the AutoYaST clone file for the CaaS Platform nodes. Swap is incompatible with Kubernetes
 
 * Create New User:
 ** User's Full Name and Username: sles
