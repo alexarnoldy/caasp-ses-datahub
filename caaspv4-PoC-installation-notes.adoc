@@ -48,6 +48,9 @@ CAUTION: If you choose to create a swap partition for the Management Workstation
 * Create New User:
 ** User's Full Name and Username: sles
 ** Select "Use this password for system administrator" and Automatic Login
+
+IMPORTANT: It is recommended to use a secure password that will work with all elements of the PoC environment. Therefore a password should be selected that includes at least one upper case and one lower case letter, one number and at least one of the following three special characters: ! # $
+
 * On the final "Installation Settings" screen:
 ** Under Security, disable the Firewall
 * Install
