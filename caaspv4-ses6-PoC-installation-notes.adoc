@@ -39,7 +39,11 @@ IMPORTANT: Use the both the SLES 15 SP1 and SUSE Enterprise Storage 6 subscripti
 * Provide the SUSE Enterprise Storage 6 subscription key
 * Select the "Text Mode" System Role 
 
-IMPORTANT: Use great care in selecting the system (boot ) drive. 
+IMPORTANT: Use great care in selecting the system (boot) drive to ensure an OSD drive or write-caching drive isn't inadvertently used as the system drive. If this occurs, the node will need to be re-installed. If this error is propogated into the AutoYaST file that is used to install the remaining OSD nodes, all affect nodes will need to be re-installed.
+
+* Select any partitioning scheme, but it is not recommended to enable LVM and it is recommended to deselect "Enlarge to RAM Size for Suspend"
+
+IMPORTANT: LVM is not needed on OSD Nodes and is incompatible with OSD drives. For that reason it is often safer to avoid LVM on OSD Nodes
 
 
 when you get to accepting salt keys, if all the host names aren't showing up as fully qualified, we need to look at it and remediate, as this will break stuff after the fact. 
