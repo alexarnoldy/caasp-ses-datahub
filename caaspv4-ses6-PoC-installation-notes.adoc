@@ -27,7 +27,7 @@ NOTE: Though the SES6 cluster will be used primarily to support the CaaS Platfor
 * Can be a VM, as long as it has access to the Internet and the cluster network
 * 4 vCPU, 4096MB mem, 20GB qcow2 boot drive in default libvirt location
 * Booting from ISO: Select "Installation" BUT DO NOT PRESS ENTER
-* On "Boot Options:" line: `ifcfg=eth0=172.16.200.13/24,172.16.200.1,172.16.250.2,stable.suse.lab hostname=admin.stable.suse.lab`
+* On "Boot Options:" line: `ifcfg=eth0=172.16.200.130/24,172.16.200.1,172.16.250.2,stable.suse.lab hostname=ses-admin.stable.suse.lab`
 ** Format of ifcfg=eth0 is <node IP address/cidr mask>,<default gateway>,<primary DNS server>,<search domain>
 * Press Enter
 
@@ -56,6 +56,34 @@ IMPORTANT: It is recommended to use a secure password that will work with all el
 ** Under Security, disable the Firewall
 * Install
 
+.Finish preparing the Management workstation:
+* `sudo bash -c "echo 'geeko ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/01geeko"`
+* `ssh-keygen`
+* `cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys`
+** This is the eaisest way to insert the Management Workstation's SSH key into the AutoYaST clone file
+* `sudo yast timezone`
+** `other Settings`
+** `Synchronize with NTP server`
+** `Synchronize now`
+** `Run NTP as daemon`
+** `Save NTP Configuration`
+** `Accept`, then `OK`
+
+.Create an AutoYaST clone file of the Management Workstation
+** `sudo yast2 clone_system`
+*** Approve the installation of the AutoYaST2 package
+** `mkdir autoyast_templates`
+** `sudo mv /root/autoinst.xml ~/autoyast_templates/ses-osd-c.xml`
+** `sudo chmod -R 777 ~/autoyast_templates/`
+
+.Update the master.xml AutoYaST file with the correct hostname and IP address
+* `sudo zypper -n in xmlstarlet`
+* `cd autoyast_templates/`
+* Verify that getent returns the correct IP address and hostname. If not, DO NOT run the subsequent `xml ed` and `sed` commands
+** `getent hosts ses-osd-c`
+* Update hostname in the ses-osd-c.xml file: xml ed -L -u "//_:networking/_:dns/_:hostname" -v ses-osd-c ses-osd-c.xml
+** Set this variable to the Management Workstation's IP address (i.e. 172.16.200.130): MANAGEMENTIP=""
+** `OSDIP=`getent hosts ses-osd-c | awk '{print$1}'`; sed -i "s/$MANAGEMENTIP/$OSDIP/" ses-osd-c.xml`
 
 when you get to accepting salt keys, if all the host names aren't showing up as fully qualified, we need to look at it and remediate, as this will break stuff after the fact. 
 
