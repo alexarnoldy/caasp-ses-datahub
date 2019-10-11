@@ -51,7 +51,10 @@ IMPORTANT: LVM is not needed on OSD Nodes and is incompatible with OSD drives. F
 
 IMPORTANT: It is recommended to use a secure password that will work with all elements of the PoC environment. Therefore a password should be selected that includes at least one upper case and one lower case letter, one number and at least one of the following three special characters: ! # $
 
-** Select "Use this password for system administrator", but do not select Automatic Login 
+* Select "Use this password for system administrator", but do not select Automatic Login 
+* On the final "Installation Settings" screen:
+** Under Security, disable the Firewall
+* Install
 
 
 when you get to accepting salt keys, if all the host names aren't showing up as fully qualified, we need to look at it and remediate, as this will break stuff after the fact. 
