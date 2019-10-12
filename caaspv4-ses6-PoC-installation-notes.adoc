@@ -1,5 +1,12 @@
 ### CURRENT STAGE OF THIS DOCUMENT: Rapidly changing, highly incomplete, based on a four node configuration, though only three nodes are available at the time of this writing, likely brittle do to lots of automation based on this specific configuration.
-#### Last updated: 2019.10.10, PM PDT
+#### Last updated: 2019.10.12, PM PDT
+
+#### Things to fix in this document:
+* Need to link CaaSPv4 doc at the end
+* Need to pull the nginx and some of the AutoYaST stuff out and put it into a separate doc that gets linked into this one
+* Need to change the geeko user name to sles
+* Need to change the order of the nodes from c -> a to a -> d
+* Need to ensure three node to four node conversion (and be ready to easily support more than four nodes)
 
 #### This document is a strictly guided, step-by-step implementation of a specific configuration based on the SUSE Enterprise Storage 6 Deployment Guide: https://documentation.suse.com/ses/6/single-html/ses-deployment/#book-storage-deployment
 * This specific configuration is based on five nodes:
@@ -153,6 +160,29 @@ CAUTION: The following steps assume that you know the size of the OSD Node's boo
   </suse_register>
 ----
 
+*** Create the /home/sles/autoyast_post_updates.sh file
+**** ` echo "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/01sles" > /home/sles/autoyast_templates/autoyast_post_updates.sh `
+
+*** Add the following element directly above the <services-manager> element:
+*** In the URL below, change the port number 32768 to the port number of your nginx container
+
+----
+  <scripts>
+    <post-scripts config:type="list">
+      <script>
+        <debug config:type="boolean">true</debug>
+        <feedback config:type="boolean">false</feedback>
+        <feedback_type/>
+        <filename>autoyast_post_updates.sh</filename>
+        <interpreter>shell</interpreter>
+        <location><![CDATA[http://admin.caaspv4.com:32768/autoyast_post_updates.sh]]></location>
+        <notification>Performing_Final_Updates</notification>
+        <param-list config:type="list"/>
+        <source><![CDATA[]]></source>
+      </script>
+    </post-scripts>
+  </scripts>
+----
 
 
 
