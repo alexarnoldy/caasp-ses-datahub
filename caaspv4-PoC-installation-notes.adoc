@@ -1,5 +1,7 @@
-### CURRENT STAGE OF THIS DOCUMENT: Occasionally changing, possibly incomplete, likely brittle do to lots of automation based on this specific configuration
+### CURRENT STAGE OF THIS DOCUMENT: Rapidly changing (again), possibly incomplete, likely brittle do to lots of automation based on this specific configuration
 #### Last updated: 2019.10.12, early AM PDT
+
+CAUTION: The described procedure outlined in this document leverages AutoYaST but does not include procedures for configuring DHCP (to avoid potential conflict with existing DHCP servers). For this reason all of the nodes must boot in Legacy mode, not UEFI or UEFI Secure Boot mode. This allows the "Boot Options" line to be used when booting the nodes from and ISO or DVD image. If the nodes cannot be booted in Legacy mode, the nodes will have to be manually configured correctly for the remainder of the procedure to be used. It is beyond the scope of this document to cover completing this procedure without AutoYaST.
 
 #### This document is a strictly guided, step-by-step implementation of a specific configuration based on the CaaS Platform v4.0.0 Deployment Guide: https://documentation.suse.com/suse-caasp/4/single-html/caasp-deployment/
 * This specific configuration is based on five nodes:
