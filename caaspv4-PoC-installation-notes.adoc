@@ -131,7 +131,7 @@ CAUTION: The following steps assume that the first drive to be probed is the Mas
 ----
 
 ////
-* Create the XML block to register CaaS Platform 4.0
+* Create the XML block to register CaaS Platform 4.0 (doesn't work yet)
 ----
 cat <<EOF> reg_code.xml 
   <suse_register>
@@ -163,7 +163,7 @@ EOF
 ////
 
 *** Create the /home/sles/autoyast_post_updates.sh file
-**** ` echo "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/01sles" >> /home/sles/autoyast_templates/autoyast_post_updates.sh `
+**** ` echo "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/01sles" > /home/sles/autoyast_templates/autoyast_post_updates.sh `
 
 *** Add the following element directly above the <services-manager> element:
 *** In the URL below, change the port number 32768 to the port number of your nginx container
