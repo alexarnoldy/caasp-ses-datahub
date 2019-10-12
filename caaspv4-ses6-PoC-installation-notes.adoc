@@ -30,7 +30,6 @@ NOTE: Though the SES6 cluster will be used primarily to support the CaaS Platfor
 
 .Install the Administrative Workstation:
 
-.Install the First OSD Node:
 * Can be a VM, as long as it has access to the Internet and the cluster network
 * 4 vCPU, 4096MB mem, 20GB qcow2 boot drive in default libvirt location
 * Booting from ISO: Select "Installation" BUT DO NOT PRESS ENTER
@@ -46,15 +45,18 @@ IMPORTANT: Use the both the SLES 15 SP1 and SUSE Enterprise Storage 6 subscripti
 * Provide the SUSE Enterprise Storage 6 subscription key
 * Select the "Text Mode" System Role 
 
+////
 IMPORTANT: Use great care in selecting the system (boot) drive to ensure an OSD drive or write-caching drive isn't inadvertently used as the system drive. If this occurs, the node will need to be re-installed. If this error is propogated into the AutoYaST file that is used to install the remaining OSD nodes, all affect nodes will need to be re-installed.
+////
 
-* Select any partitioning scheme, but it is not recommended to enable LVM and it is recommended to deselect "Enlarge to RAM Size for Suspend"
+* Select any partitioning scheme, but it is NOT RECOMMENDED to enable LVM 
+* It is highly recommended to deselect "Enlarge to RAM Size for Suspend"
 
-IMPORTANT: LVM is not needed on OSD Nodes and is incompatible with OSD drives. For that reason it is often safer to avoid LVM on OSD Nodes
+IMPORTANT: LVM is not needed on SES cluster nodes and is incompatible with OSD drives. For that reason it is often safer to avoid LVM on all SES cluster nodes
 
 * A separate Home Partition is not needed on the OSD Nodes but can be configured, if desired
 * Create New User:
-** User's Full Name and Username: sles
+** User's Full Name and Username: geeko
 
 IMPORTANT: It is recommended to use a secure password that will work with all elements of the PoC environment. Therefore a password should be selected that includes at least one upper case and one lower case letter, one number and at least one of the following three special characters: ! # $
 
@@ -160,31 +162,36 @@ CAUTION: The following steps assume that you know the size of the OSD Node's boo
   </suse_register>
 ----
 
-*** Create the /home/sles/autoyast_post_updates.sh file
-**** ` echo "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/01sles" > /home/sles/autoyast_templates/autoyast_post_updates.sh `
+*** Create the /home/geeko/autoyast_post_updates.sh file
+**** ` echo "echo 'geeko ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/01geeko" > /home/geeko/autoyast_templates/autoyast_post_updates.sh `
 
 *** Add the following element directly above the <services-manager> element:
 *** In the URL below, change the port number 32768 to the port number of your nginx container
 
+////
+Need to consolidate this with the nginx server for the CaaS Platform nginx server. It is ses-admin.stable.suse.lab here and admin.caaspv4.com there
+////
+
 ----
-  <scripts>
-    <post-scripts config:type="list">
-      <script>
-        <debug config:type="boolean">true</debug>
-        <feedback config:type="boolean">false</feedback>
-        <feedback_type/>
-        <filename>autoyast_post_updates.sh</filename>
-        <interpreter>shell</interpreter>
-        <location><![CDATA[http://admin.caaspv4.com:32768/autoyast_post_updates.sh]]></location>
-        <notification>Performing_Final_Updates</notification>
-        <param-list config:type="list"/>
-        <source><![CDATA[]]></source>
-      </script>
-    </post-scripts>
-  </scripts>
+    <scripts>
+      <post-scripts config:type="list">
+        <script>
+          <debug config:type="boolean">true</debug>
+          <feedback config:type="boolean">false</feedback>
+          <feedback_type/>
+          <filename>autoyast_post_updates.sh</filename>
+          <interpreter>shell</interpreter>
+          <location><![CDATA[http://ses-admin.stable.suse.lab:32768/autoyast_post_updates.sh]]></location>
+          <notification>Performing_Final_Updates</notification>
+          <param-list config:type="list"/>
+          <source><![CDATA[]]></source>
+        </script>
+      </post-scripts>
+    </scripts>
 ----
 
 
+.Install the First OSD Node:
 
 
 when you get to accepting salt keys, if all the host names aren't showing up as fully qualified, we need to look at it and remediate, as this will break stuff after the fact. 
