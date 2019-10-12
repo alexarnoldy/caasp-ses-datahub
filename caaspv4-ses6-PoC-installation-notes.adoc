@@ -119,7 +119,7 @@ CAUTION: The following steps assume that you know the size of the OSD Node's boo
 **** For example, for a boot drive that is 550GB, set MINIMUM to 471859200 and MAXIMUM to 681574400
 
 
-* Add the following element at the top, right below <profile ... > and update MY_EMAIL_ADDRESS with the correct email address and MY_CAASP_REGCODE with your registration code
+* Add the following element at the top of the file, right below <profile ... >, update MY_EMAIL_ADDRESS with the correct email address, plus MY_SLES_REGCODE and MY_SES6_REGCODE, with your registration codes
 ----
   <suse_register>
     <do_registration config:type="boolean">true</do_registration>
