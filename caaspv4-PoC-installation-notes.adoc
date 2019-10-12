@@ -1,5 +1,5 @@
 ### CURRENT STAGE OF THIS DOCUMENT: Occasionally changing, possibly incomplete, likely brittle do to lots of automation based on this specific configuration
-#### Last updated: 2019.10.08, late AM PDT
+#### Last updated: 2019.10.12, early AM PDT
 
 #### This document is a strictly guided, step-by-step implementation of a specific configuration based on the CaaS Platform v4.0.0 Deployment Guide: https://documentation.suse.com/suse-caasp/4/single-html/caasp-deployment/
 * This specific configuration is based on five nodes:
@@ -77,6 +77,18 @@ IMPORTANT: It is recommended to use a secure password that will work with all el
 ** `mkdir autoyast_templates`
 ** `sudo mv /root/autoinst.xml ~/autoyast_templates/master.xml`
 ** `sudo chmod -R 777 ~/autoyast_templates/`
+
+** Setup Docker and the nginx webserver
+*** `sudo zypper -n in docker`
+*** `sudo systemctl start docker.service && sudo systemctl enable docker.service`
+*** `sudo usermod -aG docker sles ; sudo su - sles`
+*** Launch nginx container: `docker run --name autoyast-nginx -v /home/sles/autoyast_templates:/usr/share/nginx/html:ro -P -d nginx:latest`
+**** Note: This container will not automatically start after rebooting the Management Workstation. Use `docker start autoyast-nginx` to start it manually
+*** `docker ps`
+**** The port will listed under PORTS, for example, port 32768 would be indicated with: `0.0.0.0:32768->80/tcp`
+**** Set this variable to the nginx port: `NGINX_PORT=""`
+*** Test that the master autoyast file is available: `curl http://admin.caaspv4.com:$NGINX_PORT/master.xml`
+**** The output should be the entire ses-osd-c.xml file
 
 .Update the master.xml AutoYaST file with the correct hostname and IP address
 * `sudo zypper -n in xmlstarlet`
@@ -166,7 +178,7 @@ EOF
 **** ` echo "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/01sles" > /home/sles/autoyast_templates/autoyast_post_updates.sh `
 
 *** Add the following element directly above the <services-manager> element:
-*** In the URL below, change the port number 32768 to the port number of your nginx container
+*** In the URL below, change the port number `32768` to the port number of your nginx container
 
 ----
     <scripts>
@@ -185,16 +197,6 @@ EOF
       </post-scripts>
     </scripts>
 ----
-
-** Setting up Docker and the nginx webserver
-*** `sudo zypper -n in docker`
-*** `sudo systemctl start docker.service && sudo systemctl enable docker.service`
-*** `sudo usermod -aG docker sles ; sudo su - sles`
-*** Launch nginx container: `docker run --name autoyast-nginx -v /home/sles/autoyast_templates:/usr/share/nginx/html:ro -P -d nginx:latest`
-**** Note: This container will not automatically start after rebooting the Management Workstation. Use `docker start autoyast-nginx` to start it manually
-*** `docker ps`
-**** Set this variable to the port listed under PORTS (i.e. 32768): `NGINX_PORT=""`
-*** Test that the master autoyast file is available: `curl http://admin.caaspv4.com:$NGINX_PORT/master.xml`
 
 .AutoYaST install the Master Node
 * Provide the SLES 15 SP1 DVD1 installer DVD or ISO to the VM or host BIOS
