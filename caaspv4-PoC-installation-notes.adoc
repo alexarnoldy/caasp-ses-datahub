@@ -169,21 +169,21 @@ EOF
 *** In the URL below, change the port number 32768 to the port number of your nginx container
 
 ----
-  <scripts>
-    <post-scripts config:type="list">
-      <script>
-        <debug config:type="boolean">true</debug>
-        <feedback config:type="boolean">false</feedback>
-        <feedback_type/>
-        <filename>autoyast_post_updates.sh</filename>
-        <interpreter>shell</interpreter>
-        <location><![CDATA[http://admin.caaspv4.com:32768/autoyast_post_updates.sh]]></location>
-        <notification>Performing_Final_Updates</notification>
-        <param-list config:type="list"/>
-        <source><![CDATA[]]></source>
-      </script>
-    </post-scripts>
-  </scripts>
+    <scripts>
+      <post-scripts config:type="list">
+        <script>
+          <debug config:type="boolean">true</debug>
+          <feedback config:type="boolean">false</feedback>
+          <feedback_type/>
+          <filename>autoyast_post_updates.sh</filename>
+          <interpreter>shell</interpreter>
+          <location><![CDATA[http://admin.caaspv4.com:32768/autoyast_post_updates.sh]]></location>
+          <notification>Performing_Final_Updates</notification>
+          <param-list config:type="list"/>
+          <source><![CDATA[]]></source>
+        </script>
+      </post-scripts>
+    </scripts>
 ----
 
 ** Setting up Docker and the nginx webserver
