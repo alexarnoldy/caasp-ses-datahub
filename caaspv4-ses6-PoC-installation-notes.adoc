@@ -113,9 +113,45 @@ CAUTION: The following steps assume that you know the size of the OSD Node's boo
         </listentry>
       </skip_list>
 ----
+
 ** Update MINIMUM with a value that is about 100MB less, and MAXIMUM with a value that is about 100MB greater, than the size of the boot drive
-** Both MINIMUM and MAXIMUM must be expressed in KB
-*** For example, for a boot drive that is 550GB, set MINIMUM to 471859200 and MAXIMUM to 681574400
+*** Both MINIMUM and MAXIMUM must be expressed in KB
+**** For example, for a boot drive that is 550GB, set MINIMUM to 471859200 and MAXIMUM to 681574400
+
+
+* Add the following element at the top, right below <profile ... > and update MY_EMAIL_ADDRESS with the correct email address and MY_CAASP_REGCODE with your registration code
+----
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <email>MY_EMAIL_ADDRESS</email>
+    <reg_code>MY_SLES_REGCODE</reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    <slp_discovery config:type="boolean">false</slp_discovery>
+    <addons config:type="list">
+      <addon>
+        <!-- Basesystem Module -->
+        <name>sle-module-basesystem</name>
+        <version>15.1</version>
+        <arch>x86_64</arch>
+      </addon>
+      <addon>
+        <!-- Server Applications Module -->
+        <!-- Depends on: Basesystem Module -->
+        <name>sle-module-server-applications</name>
+        <version>15.1</version>
+        <arch>x86_64</arch>
+      </addon>
+      <addon>
+        <!-- SUSE Enterprise Storage -->
+        <!-- Depends on: Server Applications Module -->
+        <name>ses</name>
+        <version>6</version>
+        <arch>x86_64</arch>
+        <reg_code>MY_SES6_REGCODE</reg_code>
+      </addon>
+    </addons>
+  </suse_register>
+----
 
 
 
