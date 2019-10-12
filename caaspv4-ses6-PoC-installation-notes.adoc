@@ -96,32 +96,26 @@ CAUTION: The following steps assume that you know the size of the OSD Node's boo
 ** Add the following element right below:
   <partitioning config:type="list">
     <drive>
-
 ----
       <initialize config:type="boolean">true</initialize>
       <skip_list config:type="list">
         <listentry>
-  	<!-- skip devices that use the usb-storage driver -->
-  	<skip_key>driver</skip_key>
-  	<skip_value>usb-storage</skip_value>
-        </listentry>
-        <listentry>
-  	<!-- skip devices that are smaller than 1GB -->
+  	<!-- skip devices that are 100MB smaller or less than the desired boot drive -->
   	<skip_key>size_k</skip_key>
-  	<skip_value>1048576</skip_value>
+  	<skip_value>MINIMUM</skip_value>
   	<skip_if_less_than config:type="boolean">true</skip_if_less_than>
         </listentry>
         <listentry>
-  	<!-- skip devices that are larger than 100GB -->
+  	<!-- skip devices that are 100MB larger or more than the desired boot drive -->
   	<skip_key>size_k</skip_key>
-  	<skip_value>104857600</skip_value>
+  	<skip_value>MAXIMUM</skip_value>
   	<skip_if_more_than config:type="boolean">true</skip_if_more_than>
         </listentry>
       </skip_list>
-
-*** Update MINIMUM with a value that is about 100MB less, and MAXIMUM with a value that is about 100MB greater, than the size of the boot drive
-*** Both MINIMUM and MAXIMUM must be expressed in KB
-**** For example, for a boot drive that is 550GB, set MINIMUM to 471859200 and MAXIMUM to 681574400
+----
+** Update MINIMUM with a value that is about 100MB less, and MAXIMUM with a value that is about 100MB greater, than the size of the boot drive
+** Both MINIMUM and MAXIMUM must be expressed in KB
+*** For example, for a boot drive that is 550GB, set MINIMUM to 471859200 and MAXIMUM to 681574400
 
 
 
