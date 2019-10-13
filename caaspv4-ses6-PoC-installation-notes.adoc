@@ -66,20 +66,21 @@ IMPORTANT: It is recommended to use a secure password that will work with all el
 ** Under Security, disable the Firewall
 * Install
 
-////
-Need to update the caaspv4 file with the changes in this part
-////
 .Finish preparing the Administrative Workstation:
-* Enabled passwordless sudo for the user geeko
+* Enable passwordless sudo for the user geeko
 ** `sudo bash -c "echo 'geeko ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/01geeko"`
-* The eaisest way to insert the Administrative Workstation's SSH key into the AutoYaST clone file is to add it to the Administrative Workstation before creating the clone file
+* The eaisest way to insert the Administrative Workstation's SSH key into the AutoYaST clone file is to add it to itself before creating the clone file
 ** `ssh-keygen`
+*** Accept the defaults, though a passphrase can be configured here, if desired
 ** `cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys`
-* Update the NTP client settings. This example simply accepts the default, public NTP servers for the region. Select a different, local NTP if available, just make sure the Administrative Workstation can sync with it before moving forward.
+* Update the NTP client settings. 
 ** `sudo yast timezone`
 *** `other Settings`
 *** `Synchronize with NTP server`
+**** This example simply accepts the default, public NTP service for the region 
+***** Select a different NTP serer, if available 
 *** `Synchronize now`
+**** Synchronizing with the NTP service will take several seconds but should complete without error
 *** `Run NTP as daemon`
 *** `Save NTP Configuration`
 *** `Accept`, then `OK`
