@@ -27,7 +27,7 @@ NOTE: Though the SES6 cluster will be used primarily to support the CaaS Platfor
 
 .Required preparation that is not yet covered
 * Establish an IP schema for the cluster. In this document, the Administrative Workstation (aka ses-admin.stable.suse.lab) is 172.16.200.130, the four OSD/Monitor/RGW nodes are 172.16.200.131-134
-* Populate DNS records that are available to the cluster nodes
+* Populate DNS records that are available to the cluster nodes. In addition, the fully qualified hostname salt.stable.suse.lab to the Administrative Workstation
 
 .Install the Administrative Workstation:
 * Can be a VM, as long as it has access to the Internet and the cluster network
@@ -307,6 +307,19 @@ TIP: It is recommended to fully install one OSD before continuing to the rest of
 * Provide the SLES 15 SP1 DVD1 installer DVD or ISO to the VM or host BIOS
 * Start the OSD Node from the DVD ISO,  Select "Installation" at DVD GRuB screen, but DO NOT PRESS ENTER
 ** On Boot Options line: `autoyast=http://ses-admin.stable.suse.lab:<nginx port>/<osd node name>.xml ifcfg=eth0=<IP of osd node>/24,<IP of gateway>,<IP of DNS server>,stable.suse.lab hostname=<osd node name>.stable.suse.lab
+
+.AutoYaST install the rest of the OSD Nodes
+* Repeat the previous step, "AutoYaST install the rest of the Worker Nodes" for each of the remaining OSD Nodes
+
+.After all OSD Nodes have completed the installation, ensure their basic configuration is correct
+* Ensure each OSD Node's network configuration is correct:
+** for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH ip a; echo "Press Enter for next system" && read NEXT; done
+* Ensure the time on all nodes, including the Administrative Workstation, are synchronized within two seconds of each other
+** for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH date; done; echo Administrative Workstation; date
+*
+
+
+
 
 
 when you get to accepting salt keys, if all the host names aren't showing up as fully qualified, we need to look at it and remediate, as this will break stuff after the fact. 
