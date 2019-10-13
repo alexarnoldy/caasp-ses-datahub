@@ -59,25 +59,30 @@ IMPORTANT: LVM is not needed on SES cluster nodes and is incompatible with OSD d
 * Create New User:
 ** User's Full Name and Username: geeko
 
-IMPORTANT: It is recommended to use a secure password that will work with all elements of the PoC environment. Therefore a password should be selected that includes at least one upper case and one lower case letter, one number and at least one of the following three special characters: ! # $
+IMPORTANT: It is recommended to use a secure password that will work with all elements of the PoC environment. Thus, a password should be selected that includes at least one upper case and one lower case letter, one number and at least one of the following three special characters: ! # $
 
 * Select "Use this password for system administrator", but do not select Automatic Login 
 * On the final "Installation Settings" screen:
 ** Under Security, disable the Firewall
 * Install
 
+////
+Need to update the caaspv4 file with the changes in this part
+////
 .Finish preparing the Management workstation:
-* `sudo bash -c "echo 'geeko ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/01geeko"`
-* `ssh-keygen`
-* `cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys`
-** This is the eaisest way to insert the Management Workstation's SSH key into the AutoYaST clone file
-* `sudo yast timezone`
-** `other Settings`
-** `Synchronize with NTP server`
-** `Synchronize now`
-** `Run NTP as daemon`
-** `Save NTP Configuration`
-** `Accept`, then `OK`
+* Enabled passwordless sudo for the user geeko
+** `sudo bash -c "echo 'geeko ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/01geeko"`
+* The eaisest way to insert the Administrative Workstation's SSH key into the AutoYaST clone file is to add it to the Administrative Workstation before creating the clone file
+** `ssh-keygen`
+** `cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys`
+* Update the NTP client settings. This example simply accepts the default, public NTP servers for the region. Select a different, local NTP if available, just make sure the Administrative Workstation can sync with it before moving forward.
+** `sudo yast timezone`
+*** `other Settings`
+*** `Synchronize with NTP server`
+*** `Synchronize now`
+*** `Run NTP as daemon`
+*** `Save NTP Configuration`
+*** `Accept`, then `OK`
 
 .Create an AutoYaST clone file of the Management Workstation
 ** `sudo yast2 clone_system`
