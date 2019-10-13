@@ -120,6 +120,7 @@ WARNING: If the getent command does not return the correct IP address and fully 
 TIP: Use the command `grep ipaddr autoinst.xml` to verify the Management Workstation's IP address
 
 ** `MASTERIP=`getent hosts master | awk '{print$1}'`; sed -i "s/$MANAGEMENTIP/$MASTERIP/" master.xml`
+* If the Management Workstation is a VM and the Master Node is a bare-metal host, run this command: xml ed -L -d "//_:services-manager/_:services/_:enable/_:service[text()='spice-vdagentd']"  master.xml
 
 ////
 Manual way of updating hostname and IP address
@@ -136,9 +137,10 @@ CAUTION: The following steps assume that the first drive to be probed is the Mas
 
 ** If the Master Node is a VM, run this command: `xml ed -L -u "//_:partitioning/_:drive/_:device"[1] -v "/dev/vda" master.xml`
 ** If the Master Node is a bare-metal server, run this command: `xml ed -L -u "//_:partitioning/_:drive/_:device"[1] -v "/dev/sda" master.xml`
-* If the Management Workstation is a VM and the Master Node is a bare-metal host, run this command: xml ed -L -d "//_:services-manager/_:services/_:enable/_:service[text()='spice-vdagentd']"  master.xml
 * `cd ~/autoyast_templates/; vim master.xml`
-* Add the following element at the top, right below <profile ... > and update MY_EMAIL_ADDRESS with the correct email address and MY_CAASP_REGCODE with your registration code
+
+.Add the software registration information
+* Add the following element at the top, right below <profile ... > 
 ----
   <suse_register>
     <do_registration config:type="boolean">true</do_registration>
@@ -164,6 +166,7 @@ CAUTION: The following steps assume that the first drive to be probed is the Mas
     </addons>
   </suse_register>
 ----
+** Update MY_EMAIL_ADDRESS with the correct email address and MY_CAASP_REGCODE with your registration code
 
 ////
 * Create the XML block to register CaaS Platform 4.0 (doesn't work yet)

@@ -162,7 +162,8 @@ CAUTION: The following steps assume that you know the size of the OSD Node's boo
 **** For example, for a boot drive that is 550GB, set MINIMUM to 471859200 and MAXIMUM to 681574400
 
 
-* Add the following element at the top of the file, right below <profile ... >, update MY_EMAIL_ADDRESS with the correct email address, plus MY_SLES_REGCODE and MY_SES6_REGCODE, with your registration codes
+.Add the software registration information
+* Add the following element at the top of the file, right below <profile ... > 
 ----
   <suse_register>
     <do_registration config:type="boolean">true</do_registration>
@@ -195,6 +196,7 @@ CAUTION: The following steps assume that you know the size of the OSD Node's boo
     </addons>
   </suse_register>
 ----
+** Update MY_EMAIL_ADDRESS with the correct email address, plus MY_SLES_REGCODE and MY_SES6_REGCODE, with your registration codes
 
 *** Create the /home/geeko/autoyast_post_updates.sh file
 **** ` echo "echo 'geeko ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/01geeko" > /home/geeko/autoyast_templates/autoyast_post_updates.sh `
