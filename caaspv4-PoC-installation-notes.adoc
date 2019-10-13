@@ -102,6 +102,9 @@ IMPORTANT: This container WILL NOT automatically start after rebooting the Manag
 * Set this variable to the nginx port: `NGINX_PORT=""`
 * Test that the master autoyast file is available: `curl http://admin.caaspv4.com:$NGINX_PORT/master.xml`
 ** The output should display the entire ses-osd-c.xml file
+*** To verify the output, compare the md5sum from each of the following two commands:
+**** `md5sum autoyast_templates/master.xml`
+**** `curl http://ses-admin.stable.suse.lab:$NGINX_PORT/master.xml | md5sum`
 
 .Update the master.xml AutoYaST file with the correct hostname and IP address
 * `sudo zypper -n in xmlstarlet`
@@ -112,7 +115,10 @@ IMPORTANT: This container WILL NOT automatically start after rebooting the Manag
 WARNING: If the getent command does not return the correct IP address and fully qualified hostanme, DO NOT run the following `xml ed` and `sed` commands
 
 * Update hostname in the master.xml file: `xml ed -L -u "//_:networking/_:dns/_:hostname" -v master master.xml`
-** Set this variable to the Management Workstation's IP address (i.e. 172.16.241.105): MANAGEMENTIP=""
+** Set this variable to the Management Workstation's IP address (i.e. 172.16.241.105): `MANAGEMENTIP=""`
+
+TIP: Use the command `grep ipaddr autoinst.xml` to verify the Management Workstation's IP address
+
 ** `MASTERIP=`getent hosts master | awk '{print$1}'`; sed -i "s/$MANAGEMENTIP/$MASTERIP/" master.xml`
 
 ////
@@ -123,14 +129,15 @@ Manual way of updating hostname and IP address
 **** Search for `<ipaddr`
 ***** Change the IP address to that of the master. In this document it is 172.16.241.105
 ////
-* Update the correct boot drive for the Master Node
+
+.Update the correct boot drive for the Master Node
 
 CAUTION: The following steps assume that the first drive to be probed is the Master Node's boot drive. If this is not the case, edit the AutoYaST file manually to set the correct boot drive
 
 ** If the Master Node is a VM, run this command: `xml ed -L -u "//_:partitioning/_:drive/_:device"[1] -v "/dev/vda" master.xml`
 ** If the Master Node is a bare-metal server, run this command: `xml ed -L -u "//_:partitioning/_:drive/_:device"[1] -v "/dev/sda" master.xml`
+* If the Management Workstation is a VM and the Master Node is a bare-metal host, run this command: xml ed -L -d "//_:services-manager/_:services/_:enable/_:service[text()='spice-vdagentd']"  master.xml
 * `cd ~/autoyast_templates/; vim master.xml`
-* If the Master Node is a VM, run this command: xml ed -L -d "//_:services-manager/_:services/_:enable/_:service[text()='spice-vdagentd']"  master.xml
 * Add the following element at the top, right below <profile ... > and update MY_EMAIL_ADDRESS with the correct email address and MY_CAASP_REGCODE with your registration code
 ----
   <suse_register>
