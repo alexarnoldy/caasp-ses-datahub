@@ -1,5 +1,5 @@
 ### CURRENT STAGE OF THIS DOCUMENT: Rapidly changing (again), possibly incomplete, likely brittle do to lots of automation based on this specific configuration
-#### Last updated: 2019.10.12, early AM PDT
+#### Last updated: 2019.10.13, early AM PDT
 
 CAUTION: The described procedure outlined in this document leverages AutoYaST but does not include procedures for configuring DHCP (to avoid potential conflict with existing DHCP servers). For this reason all of the nodes must boot in Legacy mode, not UEFI or UEFI Secure Boot mode. This allows the "Boot Options" line to be used when booting the nodes from and ISO or DVD image. If the nodes cannot be booted in Legacy mode, the nodes will have to be manually configured correctly for the remainder of the procedure to be used. It is beyond the scope of this document to cover completing this procedure without AutoYaST.
 
@@ -81,23 +81,26 @@ IMPORTANT: It is recommended to use a secure password that will work with all el
 
 
 .Create an AutoYaST clone file of the Management Workstation
-** `sudo yast2 clone_system`
-*** Approve the installation of the AutoYaST2 package
-** `mkdir autoyast_templates`
-** `sudo mv /root/autoinst.xml ~/autoyast_templates/master.xml`
-** `sudo chmod -R 777 ~/autoyast_templates/`
+* `sudo yast2 clone_system`
+** Approve the installation of the autoyast2 package
+* `mkdir ~/autoyast_templates`
+* `sudo mv /root/autoinst.xml ~/autoyast_templates/master.xml`
+* `sudo chmod -R 777 ~/autoyast_templates/`
 
-** Setup Docker and the nginx webserver
-*** `sudo zypper -n in docker`
-*** `sudo systemctl start docker.service && sudo systemctl enable docker.service`
-*** `sudo usermod -aG docker sles ; sudo su - sles`
-*** Launch nginx container: `docker run --name autoyast-nginx -v /home/sles/autoyast_templates:/usr/share/nginx/html:ro -P -d nginx:latest`
-**** Note: This container will not automatically start after rebooting the Management Workstation. Use `docker start autoyast-nginx` to start it manually
-*** `docker ps`
-**** The port will listed under PORTS, for example, port 32768 would be indicated with: `0.0.0.0:32768->80/tcp`
-**** Set this variable to the nginx port: `NGINX_PORT=""`
-*** Test that the master autoyast file is available: `curl http://admin.caaspv4.com:$NGINX_PORT/master.xml`
-**** The output should be the entire ses-osd-c.xml file
+* Setup Docker and the nginx webserver
+** `sudo zypper -n in docker`
+** `sudo systemctl start docker.service && sudo systemctl enable docker.service`
+** `sudo usermod -aG docker sles ; sudo su - sles`
+** Launch nginx webserver container: `docker run --name autoyast-nginx -v /home/sles/autoyast_templates:/usr/share/nginx/html:ro -P -d nginx:latest`
+
+IMPORTANT: This container WILL NOT automatically start after rebooting the Management Workstation. Use `docker start autoyast-nginx` to start it manually
+
+* Find the network port used by the nginx container:
+** `docker ps`
+*** The port will listed under PORTS, for example, port 32768 would be indicated with: `0.0.0.0:32768->80/tcp`
+* Set this variable to the nginx port: `NGINX_PORT=""`
+* Test that the master autoyast file is available: `curl http://admin.caaspv4.com:$NGINX_PORT/master.xml`
+** The output should display the entire ses-osd-c.xml file
 
 .Update the master.xml AutoYaST file with the correct hostname and IP address
 * `sudo zypper -n in xmlstarlet`

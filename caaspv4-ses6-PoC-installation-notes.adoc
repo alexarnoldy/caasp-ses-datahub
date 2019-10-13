@@ -1,5 +1,5 @@
 ### CURRENT STAGE OF THIS DOCUMENT: Rapidly changing, highly incomplete, based on a four node configuration, though only three nodes are available at the time of this writing, likely brittle do to lots of automation based on this specific configuration.
-#### Last updated: 2019.10.12, late PM PDT
+#### Last updated: 2019.10.13, early AM PDT
 
 #### Things to fix in this document:
 * Need to link CaaSPv4 doc at the end
@@ -86,24 +86,26 @@ IMPORTANT: It is recommended to use a secure password that will work with all el
 *** `Accept`, then `OK`
 
 .Create an AutoYaST clone file of the Management Workstation
-** `sudo yast2 clone_system`
-*** Approve the installation of the AutoYaST2 package
-** `mkdir autoyast_templates`
-** `sudo mv /root/autoinst.xml ~/autoyast_templates/ses-osd-c.xml`
-** `sudo chmod -R 777 ~/autoyast_templates/`
+* `sudo yast2 clone_system`
+** Approve the installation of the autoyast2 package
+* `mkdir ~/autoyast_templates`
+* `sudo mv /root/autoinst.xml ~/autoyast_templates/ses-osd-c.xml`
+* `sudo chmod -R 644 ~/autoyast_templates/`
 
-** Setup Docker and the nginx webserver
-*** `sudo zypper -n in docker`
-*** `sudo systemctl start docker.service && sudo systemctl enable docker.service`
-*** `sudo usermod -aG docker geeko ; sudo su - geeko`
-*** Launch nginx container: `docker run --name autoyast-nginx -v /home/geeko/autoyast_templates:/usr/share/nginx/html:ro -P -d nginx:latest`
-**** Note: This container will not automatically start after rebooting the Management Workstation. Use `docker start autoyast-nginx` to start it manually
-*** Check the port used by the nginx container:
-**** `docker ps`
-**** The port will listed under PORTS, for example, port 32768 would be indicated with: `0.0.0.0:32768->80/tcp`
-**** Set this variable to the nginx port: `NGINX_PORT=""`
-*** Test that the master autoyast file is available: `curl http://ses-admin.stable.suse.lab:$NGINX_PORT/ses-osd-c.xml`
-**** The output should be the entire ses-osd-c.xml file
+* Setup Docker and the nginx webserver
+** `sudo zypper -n in docker`
+** `sudo systemctl start docker.service && sudo systemctl enable docker.service`
+** `sudo usermod -aG docker geeko ; sudo su - geeko`
+** Launch nginx webserver container: `docker run --name autoyast-nginx -v /home/geeko/autoyast_templates:/usr/share/nginx/html:ro -P -d nginx:latest`
+
+IMPORTANT: This container WILL NOT automatically start after rebooting the Administrative Workstation. Use `docker start autoyast-nginx` to start it manually
+
+* Find the network port used by the nginx container:
+** `docker ps`
+*** The port will listed under PORTS, for example, port 32768 would be indicated with: `0.0.0.0:32768->80/tcp`
+* Set this variable to the nginx port: `NGINX_PORT=""`
+* Test that the master autoyast file is available: `curl http://ses-admin.stable.suse.lab:$NGINX_PORT/ses-osd-c.xml`
+** The output should display the entire ses-osd-c.xml file
 
 .Update the ses-osd-c.xml AutoYaST file with the correct hostname and IP address
 * `sudo zypper -n in xmlstarlet`
