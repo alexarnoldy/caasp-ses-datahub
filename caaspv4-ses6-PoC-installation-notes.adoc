@@ -90,7 +90,7 @@ IMPORTANT: It is recommended to use a secure password that will work with all el
 ** Approve the installation of the autoyast2 package
 * `mkdir ~/autoyast_templates`
 * `sudo mv /root/autoinst.xml ~/autoyast_templates/ses-osd-c.xml`
-* `sudo chmod -R 644 ~/autoyast_templates/`
+* `sudo chmod -R 655 ~/autoyast_templates/`
 
 * Setup Docker and the nginx webserver
 ** `sudo zypper -n in docker`
@@ -102,7 +102,7 @@ IMPORTANT: This container WILL NOT automatically start after rebooting the Admin
 
 * Find the network port used by the nginx container:
 ** `docker ps`
-*** The port will listed under PORTS, for example, port 32768 would be indicated with: `0.0.0.0:32768->80/tcp`
+*** The port will listed under PORTS. For example, port 32768 would be indicated with: `0.0.0.0:32768->80/tcp`
 * Set this variable to the nginx port: `NGINX_PORT=""`
 * Test that the master autoyast file is available: `curl http://ses-admin.stable.suse.lab:$NGINX_PORT/ses-osd-c.xml`
 ** The output should display the entire ses-osd-c.xml file
