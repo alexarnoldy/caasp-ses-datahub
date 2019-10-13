@@ -95,6 +95,7 @@ IMPORTANT: It is recommended to use a secure password that will work with all el
 * Setup Docker and the nginx webserver
 ** `sudo zypper -n in docker`
 ** `sudo systemctl start docker.service && sudo systemctl enable docker.service`
+*** The output should show that a symlink was created
 ** `sudo usermod -aG docker sles ; sudo su - sles`
 ** Launch nginx webserver container: `docker run --name autoyast-nginx -v /home/sles/autoyast_templates:/usr/share/nginx/html:ro -P -d nginx:latest`
 

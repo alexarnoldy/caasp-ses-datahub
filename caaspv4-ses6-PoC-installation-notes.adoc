@@ -97,8 +97,9 @@ IMPORTANT: It is recommended to use a secure password that will work with all el
 * `cp ~/autoyast_templates/autoinst.xml ~/autoyast_templates/ses-osd-c.xml`
 
 * Setup Docker and the nginx webserver
-** `sudo zypper -n in docker`
+** `sudo zypper -n install docker`
 ** `sudo systemctl start docker.service && sudo systemctl enable docker.service`
+*** The output should show that a symlink was created
 ** `sudo usermod -aG docker geeko ; sudo su - geeko`
 ** Launch nginx webserver container: `docker run --name autoyast-nginx -v /home/geeko/autoyast_templates:/usr/share/nginx/html:ro -P -d nginx:latest`
 
@@ -115,7 +116,7 @@ IMPORTANT: This container WILL NOT automatically start after rebooting the Admin
 **** `curl http://ses-admin.stable.suse.lab:$NGINX_PORT/ses-osd-c.xml | md5sum`
 
 .Update the ses-osd-c.xml AutoYaST file with the correct hostname and IP address
-* `sudo zypper -n in xmlstarlet`
+* `sudo zypper -n install xmlstarlet`
 * `cd ~/autoyast_templates/`
 * Verify that getent returns the correct IP address and fully qualified hostname 
 ** `getent hosts ses-osd-c`
@@ -313,10 +314,19 @@ TIP: It is recommended to fully install one OSD before continuing to the rest of
 
 .After all OSD Nodes have completed the installation, ensure their basic configuration is correct
 * Ensure each OSD Node's network configuration is correct:
-** for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH ip a; echo "Press Enter for next system" && read NEXT; done
+** `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH ip a; echo "Press Enter for next system" && read NEXT; done`
 * Ensure the time on all nodes, including the Administrative Workstation, are synchronized within two seconds of each other
-** for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH date; done; echo Administrative Workstation; date
-*
+** `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH date; done; echo Administrative Workstation; date`
+
+.Begin configuring the Administrative Workstation for deploing the SES6 cluster software
+
+TIP: If the Administrative Workstation is a virtual machine, it is recommended to take a snapshot before continuing
+
+* Install the salt-master and salt-minion packages on the Salt master node (ses-admin) 
+** `sudo zypper -n install salt-master salt-minion`
+* Ensure the salt-master service is started and enabled
+** `sudo systemctl start salt-master.service && sudo systemctl enable salt-master.service`
+*** The output should show that a symlink was created
 
 
 
