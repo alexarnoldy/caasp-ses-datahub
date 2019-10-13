@@ -84,8 +84,9 @@ IMPORTANT: It is recommended to use a secure password that will work with all el
 * `sudo yast2 clone_system`
 ** Approve the installation of the autoyast2 package
 * `mkdir ~/autoyast_templates`
-* `sudo mv /root/autoinst.xml ~/autoyast_templates/master.xml`
-* `sudo chmod -R 755 ~/autoyast_templates/`
+* `sudo mv /root/autoinst.xml ~/autoyast_templates/`
+* `sudo chown -R sles:users ~/autoyast_templates/`
+* `cp ~/autoyast_templates/autoinst.xml ~/autoyast_templates/ses-osd-c.xml`
 
 * Setup Docker and the nginx webserver
 ** `sudo zypper -n in docker`
@@ -105,9 +106,12 @@ IMPORTANT: This container WILL NOT automatically start after rebooting the Manag
 .Update the master.xml AutoYaST file with the correct hostname and IP address
 * `sudo zypper -n in xmlstarlet`
 * `cd ~/autoyast_templates/`
-* Verify that getent returns the correct IP address and hostname. If not, DO NOT run the subsequent `xml ed` and `sed` commands
+* Verify that getent returns the correct IP address and fully qualified hostname 
 ** `getent hosts master`
-* Update hostname in the master.xml file: xml ed -L -u "//_:networking/_:dns/_:hostname" -v master master.xml
+
+WARNING: If the getent command does not return the correct IP address and fully qualified hostanme, DO NOT run the following `xml ed` and `sed` commands
+
+* Update hostname in the master.xml file: `xml ed -L -u "//_:networking/_:dns/_:hostname" -v master master.xml`
 ** Set this variable to the Management Workstation's IP address (i.e. 172.16.241.105): MANAGEMENTIP=""
 ** `MASTERIP=`getent hosts master | awk '{print$1}'`; sed -i "s/$MANAGEMENTIP/$MASTERIP/" master.xml`
 
