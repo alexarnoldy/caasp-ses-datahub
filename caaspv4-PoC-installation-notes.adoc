@@ -200,33 +200,34 @@ EOF
 
 ////
 
+* Add the following element directly above the <services-manager> element:
+
+----
+  <scripts>
+    <post-scripts config:type="list">
+      <script>
+        <debug config:type="boolean">true</debug>
+        <feedback config:type="boolean">false</feedback>
+        <feedback_type/>
+        <filename>autoyast_post_updates.sh</filename>
+        <interpreter>shell</interpreter>
+        <location><![CDATA[http://admin.caaspv4.com:32768/autoyast_post_updates.sh]]></location>
+        <notification>Performing_Final_Updates</notification>
+        <param-list config:type="list"/>
+        <source><![CDATA[]]></source>
+      </script>
+    </post-scripts>
+  </scripts>
+----
+** In the URL above, change the port number `32768` to the port number of your nginx webserver container
+* Save the file and exit vim
+
 *** Create the /home/sles/autoyast_post_updates.sh file
 **** ` echo "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/01sles" > /home/sles/autoyast_templates/autoyast_post_updates.sh `
 
-*** Add the following element directly above the <services-manager> element:
-*** In the URL below, change the port number `32768` to the port number of your nginx container
-
-----
-    <scripts>
-      <post-scripts config:type="list">
-        <script>
-          <debug config:type="boolean">true</debug>
-          <feedback config:type="boolean">false</feedback>
-          <feedback_type/>
-          <filename>autoyast_post_updates.sh</filename>
-          <interpreter>shell</interpreter>
-          <location><![CDATA[http://admin.caaspv4.com:32768/autoyast_post_updates.sh]]></location>
-          <notification>Performing_Final_Updates</notification>
-          <param-list config:type="list"/>
-          <source><![CDATA[]]></source>
-        </script>
-      </post-scripts>
-    </scripts>
-----
-
 .AutoYaST install the Master Node
 
-CAUTION: The steps below assume eth0 has network access to the admin node. If this is not the case, asjusted the "Boot Options" line below to specify a NIC on the Master Node that has network access to the admin node.
+CAUTION: The steps below assume the Master Node's eth0 has network access to the admin node. If this is not the case, asjusted the "Boot Options" line below to specify a NIC on the Master Node that has network access to the admin node.
 
 * Provide the SLES 15 SP1 DVD1 installer DVD or ISO to the VM or host BIOS
 * Start the Master Node from DVD ISO,  Select "Installation" at DVD GRuB screen, but DO NOT PRESS ENTER

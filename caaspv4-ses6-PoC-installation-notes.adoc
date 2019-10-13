@@ -135,7 +135,7 @@ CAUTION: The following steps assume that you know the size of the OSD Node's boo
 ** If the Adminstrative Workstation is a VM, run this command: `xml ed -L -d "//_:partitioning/_:drive/_:device[text()='/dev/vda']" ses-osd-c.xml`
 ** If the Adminstrative Workstation is a bare-metal server, run this command: `xml ed -L -d "//_:partitioning/_:drive/_:device[text()='/dev/sda']" ses-osd-c.xml`
 * Insert the minimum and maximum size search parameters for the boot drive:
-** `cd ~/autoyast_templates/; vim master.xml`
+** `vim ses-osd-c.xml`
 ** Add the following element right below:
   <partitioning config:type="list">
     <drive>
@@ -157,8 +157,8 @@ CAUTION: The following steps assume that you know the size of the OSD Node's boo
       </skip_list>
 ----
 
-** Update MINIMUM with a value that is about 100MB less, and MAXIMUM with a value that is about 100MB greater, than the size of the boot drive
-*** Both MINIMUM and MAXIMUM must be expressed in KB
+** Update MINIMUM with a value that is about 100MB less, and MAXIMUM with a value that is about 100MB greater than the size of the boot drive
+*** Both MINIMUM and MAXIMUM are expressed in kilobytes
 **** For example, for a boot drive that is 550GB, set MINIMUM to 471859200 and MAXIMUM to 681574400
 
 
@@ -198,38 +198,39 @@ CAUTION: The following steps assume that you know the size of the OSD Node's boo
 ----
 ** Update MY_EMAIL_ADDRESS with the correct email address, plus MY_SLES_REGCODE and MY_SES6_REGCODE, with your registration codes
 
-*** Create the /home/geeko/autoyast_post_updates.sh file
-**** ` echo "echo 'geeko ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/01geeko" > /home/geeko/autoyast_templates/autoyast_post_updates.sh `
-
 *** Add the following element directly above the <services-manager> element:
-*** In the URL below, change the port number 32768 to the port number of your nginx container
 
 ////
 Need to consolidate this with the nginx server for the CaaS Platform nginx server. It is ses-admin.stable.suse.lab here and admin.caaspv4.com there
 ////
 
 ----
-    <scripts>
-      <post-scripts config:type="list">
-        <script>
-          <debug config:type="boolean">true</debug>
-          <feedback config:type="boolean">false</feedback>
-          <feedback_type/>
-          <filename>autoyast_post_updates.sh</filename>
-          <interpreter>shell</interpreter>
-          <location><![CDATA[http://ses-admin.stable.suse.lab:32768/autoyast_post_updates.sh]]></location>
-          <notification>Performing_Final_Updates</notification>
-          <param-list config:type="list"/>
-          <source><![CDATA[]]></source>
-        </script>
-      </post-scripts>
-    </scripts>
+  <scripts>
+    <post-scripts config:type="list">
+      <script>
+        <debug config:type="boolean">true</debug>
+        <feedback config:type="boolean">false</feedback>
+        <feedback_type/>
+        <filename>autoyast_post_updates.sh</filename>
+        <interpreter>shell</interpreter>
+        <location><![CDATA[http://ses-admin.stable.suse.lab:32768/autoyast_post_updates.sh]]></location>
+        <notification>Performing_Final_Updates</notification>
+        <param-list config:type="list"/>
+        <source><![CDATA[]]></source>
+      </script>
+    </post-scripts>
+  </scripts>
 ----
+** In the URL below, change the port number 32768 to the port number of your nginx container
+* Save the file and exit vim
+
+* Create the /home/geeko/autoyast_post_updates.sh file:
+** `echo "echo 'geeko ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/01geeko" > /home/geeko/autoyast_templates/autoyast_post_updates.sh`
 
 
 .AutoYaST install the first OSD Node
 
-CAUTION: The steps below assume eth0 has network access to the ses-admin node. If this is not the case, asjusted the "Boot Options" line below to specify a NIC on the OSD Node that has network access to the ses-admin node.
+CAUTION: The steps below assume the OSD Node's eth0 has network access to the ses-admin node. If this is not the case, asjusted the "Boot Options" line below to specify a NIC on the OSD Node that has network access to the ses-admin node.
 
 * Provide the SLES 15 SP1 DVD1 installer DVD or ISO to the VM or host BIOS
 * Start the Master Node from DVD ISO,  Select "Installation" at DVD GRuB screen, but DO NOT PRESS ENTER
