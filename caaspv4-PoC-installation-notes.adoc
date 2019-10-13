@@ -260,7 +260,7 @@ TIP: In yast, Tab will help you navigate through panes and options. Each option 
 ** `(Select Statically Assigned IP Address) -> IP Address -> (input the Master Node's IP address)`
 ** `(Adjust the Subnet Mask, if needed) -> Bonded Slaves -> Yes`
 ** `(Select both eth0 and eth1) -> Next`
-** `Routing -> (Ensure the Device for Default IPv4 Gateway is -) -> OK`
+** `Routing -> (Ensure the Device for Default IPv4 Gateway is "-") -> OK`
 * Verify networking is functioning correctly:
 ** `ip a`
 ** `ping opensuse.com`
@@ -302,7 +302,7 @@ To update the hostname: xml ed -L -u "//_:networking/_:dns/_:hostname" -v <new h
 * Verify that getent returns the correct IP addresses and hostnames. If not, DO NOT run the subsequent xml ed for loop
 ** `for EACH in 1 2 3; do getent hosts worker$EACH; done`
 * Change the ipaddr value for each Worker Node's external interface
-** Set this variable to the Master Node's IP address: MASTERIP=""
+** Set this variable to the Master Node's IP address: `MASTERIP=""`
 ** `for EACH in 1 2 3; do WORKERIP=`getent hosts worker$EACH | awk '{print$1}'`; sed -i "s/$MASTERIP/$WORKERIP/" worker$EACH.xml; done`
 
 ////

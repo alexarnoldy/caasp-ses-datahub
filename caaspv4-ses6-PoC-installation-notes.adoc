@@ -263,10 +263,34 @@ TIP: In yast, Tab will help you navigate through panes and options. Each option 
 ** `(Select Statically Assigned IP Address) -> IP Address -> (input the Master Node's IP address)`
 ** `(Adjust the Subnet Mask, if needed) -> Bonded Slaves -> Yes`
 ** `(Select both eth0 and eth1) -> Next`
-** `Routing -> (Ensure the Device for Default IPv4 Gateway is -) -> OK`
+** `Routing -> (Ensure the Device for Default IPv4 Gateway is "-") -> OK`
 * Verify networking is functioning correctly:
 ** `ip a`
 ** `ping opensuse.com`
+
+
+.Creating an AutoYaST clone of the OSD Node
+** The following steps can be performed from the OSD Node's console or an SSH session
+*** `sudo yast2 clone_system`
+*** SCP the AutoYaST file to the Administrative Workstation. This will overwrite the original ses-osd-c.xml file. Make a copy first, if needed.
+**** ` sudo scp /root/autoinst.xml ses-admin.stable.suse.lab:/home/geeko/autoyast_templates/ses-osd-c.xml `
+
+.Create copies of the ses-osd-c.xml file for each of the remaining OSD Nodes
+
+TIP: Perform the following steps from the Administrative Workstation as the geeko user
+
+* `cd ~/autoyast_templates/`
+* `for EACH in b a; do cp -p ses-osd-c.xml ses-osd-$EACH.xml; done`
+
+.Edit each OSD Node's XML file to update the hostname and IP address
+
+* Change the hostname value for each OSD Node
+** `for EACH in b a; do xml ed -L -u "//_:networking/_:dns/_:hostname" -v ses-osd-$EACH ses-osd-$EACH.xml; done`
+* Verify that getent returns the correct IP addresses and hostnames. If not, DO NOT run the subsequent xml ed for loop
+** `for EACH in b a; do getent hosts ses-osd-$EACH; done`
+* Change the ipaddr value for each OSD Node's external interface
+** Set this variable to the ses-osd-c node's IP address: `OSD_C_IP=""`
+** `for EACH in b a; do OSDIP=`getent hosts ses-osd-$EACH | awk '{print$1}'`; sed -i "s/$OSD_C_IP/$OSDIP/" ses-osd-$EACH.xml; done`
 
 
 
