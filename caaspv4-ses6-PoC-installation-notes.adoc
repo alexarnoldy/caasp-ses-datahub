@@ -69,7 +69,7 @@ IMPORTANT: It is recommended to use a secure password that will work with all el
 ////
 Need to update the caaspv4 file with the changes in this part
 ////
-.Finish preparing the Management workstation:
+.Finish preparing the Administrative Workstation:
 * Enabled passwordless sudo for the user geeko
 ** `sudo bash -c "echo 'geeko ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/01geeko"`
 * The eaisest way to insert the Administrative Workstation's SSH key into the AutoYaST clone file is to add it to the Administrative Workstation before creating the clone file
