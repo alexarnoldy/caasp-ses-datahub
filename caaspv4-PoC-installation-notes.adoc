@@ -317,7 +317,7 @@ This was the manual way to update hostname and IP address
 
 .Test that each Worker Node XML file is available through the nginx webserver
 * `docker ps`
-* Set this variable to the port listed under PORTS: NGINX_PORT=""
+* Set this variable to the port listed under PORTS: `NGINX_PORT=""`
 * Test that each Worker Node autoyast file is available: `for EACH in 1 2 3; do curl http://admin.caaspv4.com:$NGINX_PORT/worker$EACH.xml | egrep "<hostname|ipaddr"; done`
 ** Verify each hostname and IP address is correct for each Worker Node
 
@@ -329,7 +329,7 @@ TIP: It is recommended to fully install worker1 before continuing to the rest of
 
 * Provide the SLES 15 SP1 DVD1 installer DVD or ISO to the VM or host BIOS
 * Start the worker1 from DVD ISO,  Select "Installation" at DVD GRuB screen, but DO NOT PRESS ENTER
-** On Boot Options line: `autoyast=http://admin.caaspv4.com:<nginx port>/<worker node name>.xml ifcfg=eth0=<IP of worker node>/24,<IP of gateway>,<IP of DNS server,caaspv4.com hostname=<worker node name>.caaspv4.com
+** On Boot Options line: `autoyast=http://admin.caaspv4.com:<nginx port>/<worker node name>.xml ifcfg=eth0=<IP of worker node>/24,<IP of gateway>,<IP of DNS server>,caaspv4.com hostname=<worker node name>.caaspv4.com
 
 .AutoYaST install the rest of the Worker Nodes
 * Repeat the previous step, "AutoYast install worker1" for each of the remaining Worker Nodes

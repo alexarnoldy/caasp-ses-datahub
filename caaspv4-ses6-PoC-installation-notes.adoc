@@ -293,6 +293,21 @@ TIP: Perform the following steps from the Administrative Workstation as the geek
 ** `for EACH in b a; do OSDIP=`getent hosts ses-osd-$EACH | awk '{print$1}'`; sed -i "s/$OSD_C_IP/$OSDIP/" ses-osd-$EACH.xml; done`
 
 
+.Test that each OSD Node's XML file is available through the nginx webserver
+* `docker ps`
+* Set this variable to the port listed under PORTS: `NGINX_PORT=""`
+* Test that each OSD Node autoyast file is available: `for EACH in b a; do curl http://ses-admin.stable.suse.lab:$NGINX_PORT/ses-osd-$EACH.xml | egrep "<hostname|ipaddr"; done`
+** Verify each hostname and IP address is correct for each Worker Node
+
+.AutoYaST install the next OSD Node
+
+TIP: It is recommended to fully install one OSD before continuing to the rest of the OSD Nodes.
+     Once it is shown that one OSD Node can be fully installed with the AutoYaST configuration, multiple nodes can be installed simultaneously.
+
+* Provide the SLES 15 SP1 DVD1 installer DVD or ISO to the VM or host BIOS
+* Start the OSD Node from the DVD ISO,  Select "Installation" at DVD GRuB screen, but DO NOT PRESS ENTER
+** On Boot Options line: `autoyast=http://ses-admin.stable.suse.lab:<nginx port>/<osd node name>.xml ifcfg=eth0=<IP of osd node>/24,<IP of gateway>,<IP of DNS server>,stable.suse.lab hostname=<osd node name>.stable.suse.lab
+
 
 when you get to accepting salt keys, if all the host names aren't showing up as fully qualified, we need to look at it and remediate, as this will break stuff after the fact. 
 
