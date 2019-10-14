@@ -1,7 +1,7 @@
 ### CURRENT STAGE OF THIS DOCUMENT: Rapidly changing (again), possibly incomplete, likely brittle do to lots of automation based on this specific configuration
 #### Last updated: 2019.10.13, early AM PDT
 
-CAUTION: The described procedure outlined in this document leverages AutoYaST but does not include procedures for configuring DHCP (to avoid potential conflict with existing DHCP servers). For this reason all of the nodes must boot in Legacy mode, not UEFI or UEFI Secure Boot mode. This allows the "Boot Options" line to be used when booting the nodes from and ISO or DVD image. If the nodes cannot be booted in Legacy mode, the nodes will have to be manually configured correctly for the remainder of the procedure to be used. It is beyond the scope of this document to cover completing this procedure without AutoYaST.
+CAUTION: The procedure outlined in this document leverages AutoYaST. AutoYaST works slightly differently depending on if the server is configured to boot in (U)EFI mode or Legacy BIOS mode. This document attempts to provide the simplest procedures for both cases. 
 
 #### This document is a strictly guided, step-by-step implementation of a specific configuration based on the CaaS Platform v4.0.0 Deployment Guide: https://documentation.suse.com/suse-caasp/4/single-html/caasp-deployment/
 * This specific configuration is based on five nodes:
@@ -235,7 +235,7 @@ EOF
 
 .AutoYaST install the Master Node
 
-IMPORTANT: AutoYaST requires that the Node boot in Legacy Mode. It is not compatible with UEFI mode. For more information, see the SLES15 SP1 AutoYaST guide: https://documentation.suse.com/sles/15-SP1/single-html/SLES-autoyast/#book-autoyast
+IMPORTANT: The procedure for installing via AutoYaST is slightly different depending on if the target server is configured to boot in (U)EFI mode or Legacy BIOS mode. To ensure a the boot mode for a bare-metal server, consult its BIOS before continuing. Virtual Machines commonly boot in Legacy BIOS mode. For more information, see the SLES15 SP1 AutoYaST guide: https://documentation.suse.com/sles/15-SP1/single-html/SLES-autoyast/#book-autoyast
 
 CAUTION: The steps below assume the Master Node's eth0 has network access to the admin node. If this is not the case, asjusted the "Boot Options" line below to specify a NIC on the Master Node that has network access to the admin node.
 
@@ -323,7 +323,8 @@ This was the manual way to update hostname and IP address
 ** Verify each hostname and IP address is correct for each Worker Node
 
 .AutoYaST install worker1
-* 
+
+IMPORTANT: The procedure for installing via AutoYaST is slightly different depending on if the target server is configured to boot in (U)EFI mode or Legacy BIOS mode. To ensure a the boot mode for a bare-metal server, consult its BIOS before continuing. Virtual Machines commonly boot in Legacy BIOS mode. For more information, see the SLES15 SP1 AutoYaST guide: https://documentation.suse.com/sles/15-SP1/single-html/SLES-autoyast/#book-autoyast
 
 TIP: It is recommended to fully install worker1 before continuing to the rest of the Worker Nodes.
      Once it is shown that worker1 can be fully installed with the AutoYaST configuration, multiple Worker Nodes can be installed simultaneously.

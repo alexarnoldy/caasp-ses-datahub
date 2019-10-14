@@ -8,7 +8,7 @@
 * Need to change the order of the nodes from c -> a to a -> d
 * Need to ensure three node to four node conversion (and be ready to easily support more than four nodes)
 
-CAUTION: The procedure outlined in this document leverages AutoYaST. AutoYaST works slightly differently depending on if the server is configured to boot in (U)EFI mode or Legacy BIOS mode. This document attempts to provide the simplest procedures that will work for both cases. 
+CAUTION: The procedure outlined in this document leverages AutoYaST. AutoYaST works slightly differently depending on if the server is configured to boot in (U)EFI mode or Legacy BIOS mode. This document attempts to provide the simplest procedures for both cases. 
 
 #### This document is a strictly guided, step-by-step implementation of a specific configuration based on the SUSE Enterprise Storage 6 Deployment Guide: https://documentation.suse.com/ses/6/single-html/ses-deployment/#book-storage-deployment
 * This specific configuration is based on five nodes:
@@ -242,7 +242,7 @@ Need to consolidate this with the nginx server for the CaaS Platform nginx serve
 
 .AutoYaST install the first OSD Node
 
-IMPORTANT: AutoYaST requires that the Node boot in Legacy Mode. It is not compatible with UEFI mode. For more information, see the SLES15 SP1 AutoYaST guide: https://documentation.suse.com/sles/15-SP1/single-html/SLES-autoyast/#book-autoyast
+IMPORTANT: The procedure for installing via AutoYaST is slightly different depending on if the target server is configured to boot in (U)EFI mode or Legacy BIOS mode. To ensure a the boot mode for a bare-metal server, consult its BIOS before continuing. Virtual Machines commonly boot in Legacy BIOS mode. For more information, see the SLES15 SP1 AutoYaST guide: https://documentation.suse.com/sles/15-SP1/single-html/SLES-autoyast/#book-autoyast
 
 CAUTION: The steps below assume the OSD Node's eth0 has network access to the ses-admin node. If this is not the case, asjusted the "Boot Options" line below to specify a NIC on the OSD Node that has network access to the ses-admin node.
 
@@ -304,6 +304,8 @@ TIP: Perform the following steps from the Administrative Workstation as the geek
 ** Verify each hostname and IP address is correct for each Worker Node
 
 .AutoYaST install the next OSD Node
+
+IMPORTANT: The procedure for installing via AutoYaST is slightly different depending on if the target server is configured to boot in (U)EFI mode or Legacy BIOS mode. To ensure a the boot mode for a bare-metal server, consult its BIOS before continuing. Virtual Machines commonly boot in Legacy BIOS mode. For more information, see the SLES15 SP1 AutoYaST guide: https://documentation.suse.com/sles/15-SP1/single-html/SLES-autoyast/#book-autoyast
 
 TIP: It is recommended to fully install one OSD before continuing to the rest of the OSD Nodes.
      Once it is shown that one OSD Node can be fully installed with the AutoYaST configuration, multiple nodes can be installed simultaneously.
