@@ -246,13 +246,15 @@ Need to consolidate this with the nginx server for the CaaS Platform nginx serve
 
 .AutoYaST install the first OSD Node
 
-IMPORTANT: The procedure for installing via AutoYaST is slightly different depending on if the target server is configured to boot in (U)EFI mode or Legacy BIOS mode. To ensure a the boot mode for a bare-metal server, consult its BIOS before continuing. Virtual Machines commonly boot in Legacy BIOS mode. For more information, see the SLES15 SP1 AutoYaST guide: https://documentation.suse.com/sles/15-SP1/single-html/SLES-autoyast/#book-autoyast
+IMPORTANT: The procedure for installing via AutoYaST is slightly different depending on if the target server is configured to boot in (U)EFI mode or Legacy BIOS mode. To verify the boot mode for a bare-metal server, consult its BIOS before continuing. Virtual Machines commonly boot in Legacy BIOS mode. For more information, see the SLES15 SP1 AutoYaST guide: https://documentation.suse.com/sles/15-SP1/single-html/SLES-autoyast/#book-autoyast
 
 CAUTION: The steps below assume the OSD Node's eth0 has network access to the ses-admin node. If this is not the case, asjusted the "Boot Options" line below to specify a NIC on the OSD Node that has network access to the ses-admin node.
 
 * Provide the SLES 15 SP1 DVD1 installer DVD or ISO to the BIOS of the OSD Node
 * Start the OSD Node from DVD or ISO,  Select "Installation" at the DVD GRuB screen, but DO NOT PRESS ENTER
-* On Boot Options line: `autoyast=http://ses-admin.stable.suse.lab:<nginx port>/ses-osd-c.xml ifcfg=eth0=<IP of ses-osd-c>/24,<IP of gateway>,<IP of DNS server>,stable.suse.lab hostname=ses-osd-c.stable.suse.lab`
+** If there is a "Boot Options" line near the bottom of the screen, provide the AutoYaST parameters, shown below. When ready, press Enter to boot the system.
+** If there IS NOT a "Boot Options" line near the bottom of the screen, press the "e" key, then provide the AutoYaST parameters, shown below; at the end of the "linuxefi" line. When ready, press Ctrl+x to boot the system.
+*** AutoYaST parameters: `autoyast=http://ses-admin.stable.suse.lab:<nginx port>/ses-osd-c.xml ifcfg=eth0=<IP of ses-osd-c>/24,<IP of gateway>,<IP of DNS server>,stable.suse.lab hostname=ses-osd-c.stable.suse.lab`
 
 .After OSD Node completes installation, Adjust its networking to suit the environment 
 
@@ -316,7 +318,9 @@ TIP: It is recommended to fully install one OSD before continuing to the rest of
 
 * Provide the SLES 15 SP1 DVD1 installer DVD or ISO to the VM or host BIOS
 * Start the OSD Node from the DVD ISO,  Select "Installation" at DVD GRuB screen, but DO NOT PRESS ENTER
-** On Boot Options line: `autoyast=http://ses-admin.stable.suse.lab:<nginx port>/<osd node name>.xml ifcfg=eth0=<IP of osd node>/24,<IP of gateway>,<IP of DNS server>,stable.suse.lab hostname=<osd node name>.stable.suse.lab
+** If there is a "Boot Options" line near the bottom of the screen, provide the AutoYaST parameters, shown below. When ready, press Enter to boot the system.
+** If there IS NOT a "Boot Options" line near the bottom of the screen, press the "e" key, then provide the AutoYaST parameters, shown below; at the end of the "linuxefi" line. When ready, press Ctrl+x to boot the system.
+*** AutoYaST parameters: `autoyast=http://ses-admin.stable.suse.lab:<nginx port>/<osd node name>.xml ifcfg=eth0=<IP of osd node>/24,<IP of gateway>,<IP of DNS server>,stable.suse.lab hostname=<osd node name>.stable.suse.lab
 
 .AutoYaST install the rest of the OSD Nodes
 * Repeat the previous step, "AutoYaST install the rest of the Worker Nodes" for each of the remaining OSD Nodes
