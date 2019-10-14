@@ -17,7 +17,10 @@ CAUTION: The procedure outlined in this document leverages AutoYaST. AutoYaST wo
 ** Three Monitors - collocated with the first three OSD Nodes
 ** One Rados (S3/Swift) Gateways (RGW) - collocated it the fourth OSD Node
 
-#### Format of this document will be to create SES6 PoC installation notes here, then link https://github.com/alexarnoldy/caasp-ses-datahub/blob/master/caaspv4-installation-notes.adoc
+////
+Note to author:
+Format of this document will be to create SES6 PoC installation notes here, then link https://github.com/alexarnoldy/caasp-ses-datahub/blob/master/caaspv4-installation-notes.adoc
+////
 
 IMPORTANT: All changes to the SES6 procedures will be made here. All changes to the CaaSP4v procedures will be made in the linked document.  
 
