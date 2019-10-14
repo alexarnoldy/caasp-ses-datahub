@@ -1,5 +1,5 @@
 ### CURRENT STAGE OF THIS DOCUMENT: Rapidly changing, highly incomplete, based on a four node configuration, though only three nodes are available at the time of this writing, likely brittle do to lots of automation based on this specific configuration.
-#### Last updated: 2019.10.13, early AM PDT
+#### Last updated: 2019.10.14, mid AM PDT
 
 #### Things to fix in this document:
 * Need to link CaaSPv4 doc at the end
@@ -8,7 +8,7 @@
 * Need to change the order of the nodes from c -> a to a -> d
 * Need to ensure three node to four node conversion (and be ready to easily support more than four nodes)
 
-CAUTION: The described procedure outlined in this document leverages AutoYaST but does not include procedures for configuring DHCP (to avoid potential conflict with existing DHCP servers). For this reason all of the nodes must boot in Legacy mode, not UEFI or UEFI Secure Boot mode. This allows the "Boot Options" line to be used when booting the nodes from and ISO or DVD image. If the nodes cannot be booted in Legacy mode, the nodes will have to be manually configured correctly for the remainder of the procedure to be used. It is beyond the scope of this document to cover completing this procedure without AutoYaST.
+CAUTION: The procedure outlined in this document leverages AutoYaST. AutoYaST works slightly differently depending on if the server is configured to boot in (U)EFI mode or Legacy BIOS mode. This document attempts to provide the simplest procedures that will work for both cases. 
 
 #### This document is a strictly guided, step-by-step implementation of a specific configuration based on the SUSE Enterprise Storage 6 Deployment Guide: https://documentation.suse.com/ses/6/single-html/ses-deployment/#book-storage-deployment
 * This specific configuration is based on five nodes:
