@@ -127,10 +127,10 @@ TIP: Use the command `grep ipaddr autoinst.xml` to verify the Management Worksta
 ** `MASTERIP=`getent hosts master | awk '{print$1}'`; sed -i "s/$MANAGEMENTIP/$MASTERIP/" master.xml`
 
 
-IMPORTANT: In this procedure, AutoYaST will install the Master Node with the same network configuration as the Management Workstation. After the installation, the network will be manually changed to the Master Node's installed configuration. That configuration will be captured and used to AutoYaST install the Worker Nodes. If the Management Workstation's installed network configuration is not compatible with the Master Node's network capabilities (i.e. the Management Workstation uses eth0 but eth0 on the Master Node is not connect to the network), it is recommended to either edit the AutoYast file to create the Master Node's installed network configuration, or install the Master Node manually. See the AutoYaST guide for more information: https://documentation.suse.com/sles/15-SP1/single-html/SLES-autoyast/#book-autoyast
+IMPORTANT: In this procedure, AutoYaST will initially install the Master Node with the same network configuration as the Management Workstation. After the installation, the network will be manually changed to the Master Node's installed configuration. That configuration will be captured and used to AutoYaST install the Worker Nodes. If the Management Workstation's installed network configuration is not compatible with the Master Node's network capabilities (i.e. the Management Workstation uses eth0 but eth0 on the Master Node is not connect to the network), it is recommended to either edit the AutoYast file to create the Master Node's installed network configuration, or install the Master Node manually. See the AutoYaST guide for more information: https://documentation.suse.com/sles/15-SP1/single-html/SLES-autoyast/#book-autoyast
 
 .Update the master.xml AutoYaST file based on architectural differences:
-* If the Management Workstation is a VM and the Master Node is a bare-metal host, run this command: `xml ed -L -d "//_:services-manager/_:services/_:enable/_:service[text()='spice-vdagentd']"  master.xml`
+* If the Master Node is a bare-metal host, run this command: `xml ed -L -d "//_:services-manager/_:services/_:enable/_:service[text()='spice-vdagentd']"  master.xml`
 * If the Master Node boots in Legacy BIOS mode, run this command: `xml ed -L -u "//_:bootloader/_:loader_type" -v grub2 master.xml`
 * If the Master Node boots in (U)EFI mode, run this command: `xml ed -L -u "//_:bootloader/_:loader_type" -v grub2-efi master.xml`
 
@@ -240,14 +240,14 @@ EOF
 
 .AutoYaST install the Master Node
 
-IMPORTANT: The procedure for installing via AutoYaST is slightly different depending on if the target server is configured to boot in (U)EFI mode or Legacy BIOS mode. To ensure a the boot mode for a bare-metal server, consult its BIOS before continuing. Virtual Machines commonly boot in Legacy BIOS mode. For more information, see the SLES15 SP1 AutoYaST guide: https://documentation.suse.com/sles/15-SP1/single-html/SLES-autoyast/#book-autoyast
+IMPORTANT: The procedure for installing via AutoYaST is slightly different depending on if the target server is configured to boot in (U)EFI mode or Legacy BIOS mode. Be sure to verify the boot mode for a bare-metal server before continuing. Virtual Machines commonly boot in Legacy BIOS mode. For more information, see the SLES15 SP1 AutoYaST guide: https://documentation.suse.com/sles/15-SP1/single-html/SLES-autoyast/#book-autoyast
 
-CAUTION: The steps below assume the Master Node's eth0 has network access to the admin node. If this is not the case, asjusted the "Boot Options" line below to specify a NIC on the Master Node that has network access to the admin node.
+CAUTION: The steps below assume the Master Node's eth0 has network access to the admin node. If this is not the case, asjusted the "AutoYaST parameters" line below to specify a NIC on the Master Node that has network access to the admin node.
 
 * Provide the SLES 15 SP1 DVD1 installer DVD or ISO to the BIOS of the Master Node
 * Start the Master Node from DVD or ISO,  Select "Installation" at the DVD GRuB screen, but DO NOT PRESS ENTER
 ** If there is a "Boot Options" line near the bottom of the screen, provide the AutoYaST parameters, shown below. When ready, press Enter to boot the system.
-** If there IS NOT a "Boot Options" line near the bottom of the screen, press the "e" key, then provide the AutoYaST parameters, shown below; at the end of the "linuxefi" line. When ready, press Ctrl+x to boot the system.
+** If there IS NOT a "Boot Options" line near the bottom of the screen, press the "e" key. Then, provide the AutoYaST parameters shown below, at the end of the "linuxefi" line. When ready, press Ctrl+x to boot the system.
 *** AutoYaST parameters: `autoyast=http://admin.caaspv4.com:<nginx port>/master.xml ifcfg=eth0=<IP of master>/24,<IP of gateway>,<IP of DNS server>,caaspv4.com hostname=master.caaspv4.com`
 
 .After Master Node completes installation, Adjust its networking to suit the environment 

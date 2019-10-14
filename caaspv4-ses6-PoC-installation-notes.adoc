@@ -134,19 +134,24 @@ TIP: Use the command `grep ipaddr autoinst.xml` to verify the Administrative Wor
 ** `OSDIP=`getent hosts ses-osd-c | awk '{print$1}'`; sed -i "s/$MANAGEMENTIP/$OSDIP/" ses-osd-c.xml`
 
 .Update the ses-osd-c.xml AutoYaST file based on architectural differences:
-* If the Administrative Workstation is a VM and the OSD Nodes are bare-metal hosts, run this command: `xml ed -L -d "//_:services-manager/_:services/_:enable/_:service[text()='spice-vdagentd']"  ses-osd-c.xml`
+* If the OSD Nodes are bare-metal hosts, run this command: `xml ed -L -d "//_:services-manager/_:services/_:enable/_:service[text()='spice-vdagentd']"  ses-osd-c.xml`
 * If the OSD Nodes boot in Legacy BIOS mode, run this command: `xml ed -L -u "//_:bootloader/_:loader_type" -v grub2 ses-osd-c.xml`
 * If the OSD Nodes boot in (U)EFI mode, run this command: `xml ed -L -u "//_:bootloader/_:loader_type" -v grub2-efi ses-osd-c.xml`
 
-IMPORTANT: In this procedure, AutoYaST will install the first OSD Node with the same network configuration as the Administrative Workstation. After the installation, the network will be changed to the OSD Node's installed configuration. That configuration will be captured and used to AutoYaST install the remaining nodes. If the Administrative Workstation's installed network configuration is not compatible with the OSD's network capabilities (i.e. the Administrative Workstation uses eth0 but eth0 on the OSD Node is not connect to the network), it is recommended to either edit the AutoYast file to create the OSD Node's installed network configuration, or install the first OSD Node manually. See the AutoYaST guide for more information: https://documentation.suse.com/sles/15-SP1/single-html/SLES-autoyast/#book-autoyast
+IMPORTANT: In this procedure, AutoYaST will initially install the first OSD Node with the same network configuration as the Administrative Workstation. After the installation, the network will be changed to the OSD Node's installed configuration. That configuration will be captured and used to AutoYaST install the remaining nodes. If the Administrative Workstation's installed network configuration is not compatible with the OSD's network capabilities (i.e. the Administrative Workstation uses eth0 but eth0 on the OSD Node is not connect to the network), it is recommended to either edit the AutoYast file to create the OSD Node's installed network configuration, or install the first OSD Node manually. See the AutoYaST guide for more information: https://documentation.suse.com/sles/15-SP1/single-html/SLES-autoyast/#book-autoyast
 
 .Update the correct boot drive for the OSD Node
 
 CAUTION: The following steps assume that you know the size of the OSD Node's boot drive, the boot drive is a different size than all other drives on the OSD, and that all OSD Nodes are configured exactly the same. Configurations outside of these parameters are beyond the scope of this document.
 
-* Remove the specified /dev/vda or /dev/sda element from the AutoYaST file:
+* Remove the specified /dev/vda or /dev/sda element from the AutoYaST file: `xml ed -L -d "//_:partitioning/_:drive/_:device[text()='/dev/vda']" ses-osd-c.xml`; `xml ed -L -d "//_:partitioning/_:drive/_:device[text()='/dev/sda']" ses-osd-c.xml`
+
+////
+Doesn't need to be a conditional, as below
 ** If the Adminstrative Workstation is a VM, run this command: `xml ed -L -d "//_:partitioning/_:drive/_:device[text()='/dev/vda']" ses-osd-c.xml`
 ** If the Adminstrative Workstation is a bare-metal server, run this command: `xml ed -L -d "//_:partitioning/_:drive/_:device[text()='/dev/sda']" ses-osd-c.xml`
+////
+
 * Insert the minimum and maximum size search parameters for the boot drive:
 ** `vim ses-osd-c.xml`
 ** Add the following element right below:
@@ -246,14 +251,14 @@ Need to consolidate this with the nginx server for the CaaS Platform nginx serve
 
 .AutoYaST install the first OSD Node
 
-IMPORTANT: The procedure for installing via AutoYaST is slightly different depending on if the target server is configured to boot in (U)EFI mode or Legacy BIOS mode. To verify the boot mode for a bare-metal server, consult its BIOS before continuing. Virtual Machines commonly boot in Legacy BIOS mode. For more information, see the SLES15 SP1 AutoYaST guide: https://documentation.suse.com/sles/15-SP1/single-html/SLES-autoyast/#book-autoyast
+IMPORTANT: The procedure for installing via AutoYaST is slightly different depending on if the target server is configured to boot in (U)EFI mode or Legacy BIOS mode. Be sure to verify the boot mode for a bare-metal server before continuing. Virtual Machines commonly boot in Legacy BIOS mode. For more information, see the SLES15 SP1 AutoYaST guide: https://documentation.suse.com/sles/15-SP1/single-html/SLES-autoyast/#book-autoyast
 
-CAUTION: The steps below assume the OSD Node's eth0 has network access to the ses-admin node. If this is not the case, asjusted the "Boot Options" line below to specify a NIC on the OSD Node that has network access to the ses-admin node.
+CAUTION: The steps below assume the OSD Node's eth0 has network access to the ses-admin node. If this is not the case, asjusted the "AutoYaST parameters" line below to specify a NIC on the OSD Node that has network access to the ses-admin node.
 
 * Provide the SLES 15 SP1 DVD1 installer DVD or ISO to the BIOS of the OSD Node
 * Start the OSD Node from DVD or ISO,  Select "Installation" at the DVD GRuB screen, but DO NOT PRESS ENTER
 ** If there is a "Boot Options" line near the bottom of the screen, provide the AutoYaST parameters, shown below. When ready, press Enter to boot the system.
-** If there IS NOT a "Boot Options" line near the bottom of the screen, press the "e" key, then provide the AutoYaST parameters, shown below; at the end of the "linuxefi" line. When ready, press Ctrl+x to boot the system.
+** If there IS NOT a "Boot Options" line near the bottom of the screen, press the "e" key. Then provide the AutoYaST parameters shown below, at the end of the "linuxefi" line. When ready, press Ctrl+x to boot the system.
 *** AutoYaST parameters: `autoyast=http://ses-admin.stable.suse.lab:<nginx port>/ses-osd-c.xml ifcfg=eth0=<IP of ses-osd-c>/24,<IP of gateway>,<IP of DNS server>,stable.suse.lab hostname=ses-osd-c.stable.suse.lab`
 
 .After OSD Node completes installation, Adjust its networking to suit the environment 
