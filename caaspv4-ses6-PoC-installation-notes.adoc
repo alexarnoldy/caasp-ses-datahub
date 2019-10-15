@@ -393,6 +393,10 @@ WARNING: This procedure assumes all OSD devices are the same capacity throughout
 ** For example: If lsblk reports `sdb       8:16   0   5.5T  0 disk`, the capacity to use would be "5.5T"
 * Identify all OSD disks to be zapped, on a per node basis: `for EACH in a b c; do cat /dev/null > ses-osd-$EACH-disks-to-zap; ssh ses-osd-$EACH  lsblk | grep $CAPACITY | grep disk | awk '{print$1}' >> ses-osd-$EACH-disks-to-zap; done`
 * Validate that the disks to be zapped for each OSD Node are correct: `grep -v suse ses-osd-*-disks-to-zap`
+* Zap the beginning of each drive:
+** `for EACH in a b c; do for DISK in `cat ses-osd-$EACH-disks-to-zap`; do ssh ses-osd-$EACH sudo dd if=/dev/zero of=/dev/$DISK bs=512 count=34 oflag=direct; done; done`
+* Zap the end of each drive:
+** `for EACH in a b c; do for DISK in `cat ses-osd-$EACH-disks-to-zap`; do export BLOCKDEV=`ssh ses-osd-$EACH sudo blockdev --getsz /dev/sdb`; ssh ses-osd-$EACH  sudo dd if=/dev/zero of=/dev/$DISK bs=512 count=33 seek=$(($BLOCKDEV - 33)) oflag=direct; done; done`
 
 
 
