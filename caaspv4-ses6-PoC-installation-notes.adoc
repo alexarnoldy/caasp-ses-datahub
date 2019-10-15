@@ -373,7 +373,16 @@ TIP: Peform the following steps on the Administrative Workstation, which is also
 
 
 .Verify each Salt minion's fingerprint:
+* View the fingerprints of all the OSD Node's salt minion keys:
+** `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH sudo salt-call --local key.finger; done`
+* List fingerprints of all unaccepted minion keys on the Salt master: `sudo salt-key -F`
+** The fingerprints of all of the OSD Nodes should match what they reported
 
+.Accept the the salt minion's keys, if the match what the OSD Nodes reported
+* sudo salt-key --accept-all
+* sudo salt-key --list-all
+
+.Prior to deploying SES6, manually zap all of the disks that will be used as OSD devices
 
 
 when you get to accepting salt keys, if all the host names aren't showing up as fully qualified, we need to look at it and remediate, as this will break stuff after the fact. 
