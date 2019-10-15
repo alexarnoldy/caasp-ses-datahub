@@ -382,21 +382,25 @@ TIP: Peform the following steps on the Administrative Workstation, which is also
 * sudo salt-key --accept-all
 * sudo salt-key --list-all
 
-.Prior to deploying SES6, manually zap all of the disks that will be used as OSD devices
-* Determine the capacity of the OSD devices that will be used, as reported by lsblk
+#### Prior to deploying SES6, manually zap all of the disks that will be used as OSD devices
+.Determine the capacity of the OSD devices that will be used, as reported by lsblk
 ** `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH  lsblk | grep disk; done`
 
 WARNING: This procedure assumes all OSD devices are the same capacity throughout the SES cluster. It is beyond the scope of this document to initialize the cluster with heterogeneous OSD or caching devices.
 
-* Create a per OSD Node file containing the disks to be zapped
-* Set this variable to the capacity of the OSD devices, exactly as reported by lsblk: `CAPACITY=""`
+.Create a per OSD Node file containing the disks to be zapped
+* Set this variable to the capacity of the devices to be zapped, exactly as reported by lsblk: `CAPACITY=""`
 ** For example: If lsblk reports `sdb       8:16   0   5.5T  0 disk`, the capacity to use would be "5.5T"
-* Identify all OSD disks to be zapped, on a per node basis: `for EACH in a b c; do cat /dev/null > ses-osd-$EACH-disks-to-zap; ssh ses-osd-$EACH  lsblk | grep $CAPACITY | grep disk | awk '{print$1}' >> ses-osd-$EACH-disks-to-zap; done`
+* Identify all devices to be zapped, on a per node basis: `for EACH in a b c; do cat /dev/null > ses-osd-$EACH-disks-to-zap; ssh ses-osd-$EACH  lsblk | grep $CAPACITY | grep disk | awk '{print$1}' >> ses-osd-$EACH-disks-to-zap; done`
 * Validate that the disks to be zapped for each OSD Node are correct: `grep -v suse ses-osd-*-disks-to-zap`
+
+NOTE: Additional devices, such as SATA/SAS/NVMe SSDs can be added to each file to zap all devices at the same time. 
+
 * Zap the beginning of each drive:
 ** `for EACH in a b c; do for DISK in `cat ses-osd-$EACH-disks-to-zap`; do ssh ses-osd-$EACH sudo dd if=/dev/zero of=/dev/$DISK bs=512 count=34 oflag=direct; done; done`
 * Zap the end of each drive:
 ** `for EACH in a b c; do for DISK in `cat ses-osd-$EACH-disks-to-zap`; do export BLOCKDEV=`ssh ses-osd-$EACH sudo blockdev --getsz /dev/sdb`; ssh ses-osd-$EACH  sudo dd if=/dev/zero of=/dev/$DISK bs=512 count=33 seek=$(($BLOCKDEV - 33)) oflag=direct; done; done`
+* Return to the beginning of the step, changing the CAPACITY="" variable, to zap any additional devices that weren't zapped in the first effort.
 
 
 
