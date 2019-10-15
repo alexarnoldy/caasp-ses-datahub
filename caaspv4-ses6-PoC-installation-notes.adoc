@@ -383,6 +383,20 @@ TIP: Peform the following steps on the Administrative Workstation, which is also
 * sudo salt-key --list-all
 
 .Prior to deploying SES6, manually zap all of the disks that will be used as OSD devices
+* Determine the capacity of the OSD devices that will be used, as reported by lsblk
+** `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH  lsblk | grep disk; done`
+
+WARNING: This procedure assumes all OSD devices are the same capacity throughout the SES cluster. It is beyond the scope of this document to initialize the cluster with heterogeneous OSD or caching devices.
+
+* Create a per OSD Node file containing the disks to be zapped
+* Set this variable to the capacity of the OSD devices, exactly as reported by lsblk: `CAPACITY=""`
+** For example: If lsblk reports `sdb       8:16   0   5.5T  0 disk`, the capacity to use would be "5.5T"
+* Identify all OSD disks to be zapped, on a per node basis: `for EACH in a b c; do cat /dev/null > ses-osd-$EACH-disks-to-zap; ssh ses-osd-$EACH  lsblk | grep $CAPACITY | grep disk | awk '{print$1}' >> ses-osd-$EACH-disks-to-zap; done`
+* Validate that the disks to be zapped for each OSD Node are correct: `grep -v suse ses-osd-*-disks-to-zap`
+
+
+
+
 
 
 when you get to accepting salt keys, if all the host names aren't showing up as fully qualified, we need to look at it and remediate, as this will break stuff after the fact. 
