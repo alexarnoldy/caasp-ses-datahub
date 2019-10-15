@@ -9,6 +9,20 @@ CAUTION: The procedure outlined in this document leverages AutoYaST. AutoYaST wo
 ** One CaaS Platform Master Node - VM or bare-metal host
 ** Three CaaS Platform Worker Nodes - Must be same as Master Node
 
+.Overview of this installation procedure:
+* Manually install the SLES15 SP1 on the CaaS Platform Management Workstation
+* Make an AutoYaST clone file of the Management Workstation
+* Update the clone file for some basic differences between the architecture and configuration of the Management Workstation and the CaaS Platform cluster nodes
+* AutoYaST install the Master Node 
+
+TIP: If the differences between the Management Workstation and the CaaS Platform cluster nodes is too complex, it may be quicker and easier to manually install the Master Node, make and update an AutoYaST clone file of it, then use copies of that to install the Worker Nodes.
+
+* Update the (primarily networking) configuration of the Master Node
+* Create an AutoYaST clone file of the Master Node
+* Make and update copies of the Master Node's AutoYast clone file for the Worker Nodes
+* AutoYast install the Master Nodes
+* Install and configure CaaS Platform v4.0.0
+
 NOTE: Unlike CaaS Platform v3, the Management Workstation for CaaS Platform v4 is not tied in a 1:1 relationship with the CaaS Platform cluster.
       A Management Workstation can be used to deploy one or more CaaS Platform clusters and a CaaS Platform cluster can be managed from the 
       Management Workstation that deployed it and/or another appropriately configured Management Workstation.

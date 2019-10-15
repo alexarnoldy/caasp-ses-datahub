@@ -19,6 +19,17 @@ CAUTION: The procedure outlined in this document leverages AutoYaST. AutoYaST wo
 
 .Overview of this installation procedure:
 * Manually install the SLES15 SP1 on the SES6 Administrative Workstation
+* Make an AutoYaST clone file of the Administrative Workstation
+* Update the clone file for some basic differences between the architecture and configuration of the Administrative Workstation and the OSD Nodes
+* AutoYaST install the first OSD Node 
+
+TIP: If the differences between the Administrative Workstation and the OSD Nodes is too complex, it may be quicker and easier to manually install the first OSD Node, make and update an AutoYaST clone file of it, then use copies of that to install the remaining OSD Nodes.
+
+* Update the (primarily networking) configuration of the first OSD Node
+* Create an AutoYaST clone file of the first OSD Node
+* Make and update copies of the first OSD Node's AutoYast clone file for the remaining nodes
+* AutoYast install the remaining OSD Nodes
+* Install and configure SES6
 
 ////
 Note to author:
