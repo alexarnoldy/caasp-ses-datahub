@@ -144,7 +144,7 @@ IMPORTANT: In this procedure, AutoYaST will initially install the first OSD Node
 
 CAUTION: The following steps assume that you know the size of the OSD Node's boot drive, the boot drive is a different size than all other drives on the OSD, and that all OSD Nodes are configured exactly the same. Configurations outside of these parameters are beyond the scope of this document.
 
-* Remove the specified /dev/vda or /dev/sda element from the AutoYaST file: `xml ed -L -d "//_:partitioning/_:drive/_:device[text()='/dev/vda']" ses-osd-c.xml`; `xml ed -L -d "//_:partitioning/_:drive/_:device[text()='/dev/sda']" ses-osd-c.xml`
+* Remove the specified /dev/vda or /dev/sda element from the AutoYaST file: `xml ed -L -d "//_:partitioning/_:drive/_:device[text()='/dev/vda']" ses-osd-c.xml; xml ed -L -d "//_:partitioning/_:drive/_:device[text()='/dev/sda']" ses-osd-c.xml`
 
 ////
 Doesn't need to be a conditional, as below
@@ -178,7 +178,10 @@ Doesn't need to be a conditional, as below
 ** Update MINIMUM with a value that is about 100MB less, and MAXIMUM with a value that is about 100MB greater than the size of the boot drive
 *** Both MINIMUM and MAXIMUM are expressed in kilobytes
 **** For example, for a boot drive that is 550GB, set MINIMUM to 471859200 and MAXIMUM to 681574400
-
+* Fill the root partition with all of the remaining space on the boot drive:
+** To find the <partition> element for the root partition, search for the string `<mount>\/<`
+*** Inside that <partition> element (normally below the <mount> subnode), change the value of the <size> subnode to `max`
+**** For example, before the change it might look like: `<size>66561507328</size>` and after the change it will look like: `<size>max</size>`
 
 .Add the software registration information
 
@@ -263,7 +266,7 @@ CAUTION: The steps below assume the OSD Node's eth0 has network access to the se
 
 .After OSD Node completes installation, Adjust its networking to suit the environment 
 
-NOTE: This document demonstrates the procdure for creating a bonded network from eth0
+NOTE: This document demonstrates the procedure for creating a bonded network from eth0
     and eth1, then assigning the node's IP address to that bond; however, your configuration may be different
 
 * Perform the following steps from the OSD Node's console:

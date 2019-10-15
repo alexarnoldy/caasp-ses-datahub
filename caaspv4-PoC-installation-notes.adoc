@@ -151,6 +151,10 @@ CAUTION: The following steps assume that the first drive to be probed is the Mas
 ** If the Master Node is a VM, run this command: `xml ed -L -u "//_:partitioning/_:drive/_:device"[1] -v "/dev/vda" master.xml`
 ** If the Master Node is a bare-metal server, run this command: `xml ed -L -u "//_:partitioning/_:drive/_:device"[1] -v "/dev/sda" master.xml`
 * `cd ~/autoyast_templates/; vim master.xml`
+* Fill the root partition with all of the remaining space on the boot drive:
+** To find the <partition> element for the root partition, search for the string `<mount>\/<`
+*** Inside that <partition> element (normally below the <mount> subnode), change the value of the <size> subnode to `max`
+**** For example, before the change it might look like: `<size>66561507328</size>` and after the change it will look like: `<size>max</size>`
 
 .Add the software registration information
 * Add the following element at the top, right below <profile ... > 
