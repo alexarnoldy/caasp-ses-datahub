@@ -357,13 +357,22 @@ TIP: It is recommended to fully install one OSD before continuing to the rest of
 
 TIP: If the Administrative Workstation is a virtual machine, it is recommended to take a snapshot before continuing
 
-* Install the salt-master and salt-minion packages on the Salt master node (ses-admin) 
+TIP: Peform the following steps on the Administrative Workstation, which is also the Salt Master
+
+* Install the salt-master and salt-minion packages on the Salt Master (ses-admin) 
 ** `sudo zypper -n install salt-master salt-minion`
-* Ensure the salt-master service is started and enabled
+* Ensure the salt-master salt-minion services are started and enabled
 ** `sudo systemctl start salt-master.service && sudo systemctl enable salt-master.service`
+** `sudo systemctl start salt-minion.service && sudo systemctl enable salt-minion.service`
 *** The output should show that a symlink was created
 
+.Install, start and enable the salt-minion software on all OSD Nodes
+* `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH sudo zypper -n install salt-minion; done`
+* `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH sudo systemctl start salt-minion.service && sudo systemctl enable salt-minion.service salt-minion; done`
+** The output from each OSD Node should show that a symlink was created
 
+
+.Verify each Salt minion's fingerprint:
 
 
 
