@@ -1,5 +1,5 @@
 ### CURRENT STAGE OF THIS DOCUMENT: Rapidly changing, highly incomplete, based on a four node configuration, though only three nodes are available at the time of this writing, likely brittle do to lots of automation based on this specific configuration.
-#### Last updated: 2019.10.15, early AM PDT
+#### Last updated: 2019.10.16, late AM PDT
 
 #### Things to fix in this document:
 * Need to link CaaSPv4 doc at the end
@@ -450,7 +450,7 @@ EOF
 ** `mv /srv/salt/ceph/configuration/files/drive_groups.yml /srv/salt/ceph/configuration/files/drive_groups.yml.orig`
 ** `grep ^# /srv/salt/ceph/configuration/files/drive_groups.yml.orig > /srv/salt/ceph/configuration/files/drive_groups.yml`
 ----
-cat <<EOF>> /var/tmp/drive_groups.yml
+cat <<EOF>> /srv/salt/ceph/configuration/files/drive_groups.yml
 default:
   target: 'ses-osd-*'
   data_devices:
@@ -464,8 +464,26 @@ EOF
 ** `sed -i 's/I\@roles\:storage/ses-osd-\*/' /srv/salt/ceph/configuration/files/drive_groups.yml
 ////
 
-* Verify the capacity of the OSD devices and cache devices, as they will be seen by the ceph-volume command:
-** `salt-run disks.details`
+* Verify the capacity of the OSD devices and cache/db devices, as they will be seen by the ceph-volume command:
+** `salt-run disks.details  | grep -A1 -B2 size`
+*** Ensure the capacity of a devices listed as "rotation: 1" are the same and all devices listed as "rotational: 0" are the same
+
+NOTE: Initializing non-uniform OSD Nodes is beyond the scope of this document. For more information on correcly parsing non-uniform OSD Nodes, see the Drive Groups section of the SES6 Deployment Guide: https://documentation.suse.com/ses/6/single-html/ses-deployment/#ds-drive-groups-specs
+
+* If all rotational devices will be used as OSD devices, and all non-rotational devices will be used as cache/db devices; the drive_groups.yml file does not need to be updated
+* If needed, update the /srv/salt/ceph/configuration/files/drive_groups.yml file to add size specification to the data devices and db_devices
+** An expression of `size: ':1TB'` would limit the data_devices or db_devices to only those whose capacity is less than 1TB
+** An expression of `size: '5TB:'` would limit the data_devices or db_devices to only those whose capacity is greater than 5TB
+*** Therefore, the following code block would limit data_devices to rotational devices greater than 5TB and db_devices (aka cache/db devices) to non-rotational devices less than 1TB:
+----
+default:
+  target: 'ses-osd-*'
+  data_devices:
+    rotational: 1
+    size: '5TB:'
+  db_devices:
+    rotational: 0
+    size: ':1TB'
 ----
 
 
