@@ -428,8 +428,7 @@ CAUTION: If the output includes "No minions matched the target." the /srv/pillar
 ** This command can take several minutes to complete
 * Run the discovery Salt stage: `salt-run state.orch ceph.stage.1`
 
-.Create the policy.cfg file
-* Copy in the role based policy example: `cp -p /usr/share/doc/packages/deepsea/examples/policy.cfg-rolebased /srv/pillar/ceph/proposals/policy.cfg`
+.Create the policy.cfg and drive_groups.yml file
 * Create the policy.cfg file: 
 ----
 cat <<EOF> /srv/pillar/ceph/proposals/policy.cfg
