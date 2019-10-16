@@ -404,15 +404,22 @@ NOTE: Additional devices, such as SATA/SAS/NVMe SSDs can be added to each file t
 * Verify that the disk labels have been removed from all of the devices
 ** `for EACH in a b c; do echo ses-osd-$EACH; for DISK in `cat ses-osd-$EACH-disks-to-zap`; do ssh ses-osd-$EACH sudo parted -s /dev/$DISK print free 1>/dev/null; done; done`
 
-.Configure the Administrative Workstation for the role of Salt Master
 
-IMPORTANT: The procedure generally follows the official SES6 Deployment Guide: https://documentation.suse.com/ses/6/single-html/ses-deployment/#book-storage-deployment. While the intention is to keep it current, no guarantee is given that it will keep pace with any changes in the official deployment guide. It is highly recommended to review the official documentation before continuing
+#### Begin deploying the SES6 cluster
+
+IMPORTANT: The procedure generally follows the official SES6 Deployment Guide: https://documentation.suse.com/ses/6/single-html/ses-deployment/#book-storage-deployment. While the intention is to keep it current, no guarantee is given that it will keep pace with any changes in the official deployment guide. It is highly recommended to review the official documentation before continuing.
 
 TIP: Peform the following steps on the Administrative Workstation, which is also the Salt Master
+
+.Configure the Administrative Workstation for the role of Salt Master
 
 * Install the deepsea package : `sudo zypper -n install deepsea`
 * The contents of `/etc/salt/minion_id` must be included in what is returned by `sudo salt-key -L`
 ** If not, consult the deployment guide for remediation
+
+.Run the 
+*
+
 
 
 when you get to accepting salt keys, if all the host names aren't showing up as fully qualified, we need to look at it and remediate, as this will break stuff after the fact. 
