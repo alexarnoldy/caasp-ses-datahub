@@ -446,6 +446,28 @@ role-storage/cluster/ses-osd-*.sls
 EOF
 ----
 
+* Update the drive_groups.yml file to target the OSD Nodes:
+** `mv /srv/salt/ceph/configuration/files/drive_groups.yml /srv/salt/ceph/configuration/files/drive_groups.yml.orig`
+** `grep ^# /srv/salt/ceph/configuration/files/drive_groups.yml.orig > /srv/salt/ceph/configuration/files/drive_groups.yml`
+----
+cat <<EOF>> /var/tmp/drive_groups.yml
+default:
+  target: 'ses-osd-*'
+  data_devices:
+rotational: 1
+  db_devices:
+rotational: 0
+EOF
+----
+
+////
+** `sed -i 's/I\@roles\:storage/ses-osd-\*/' /srv/salt/ceph/configuration/files/drive_groups.yml
+////
+
+* Verify the capacity of the OSD devices and cache devices, as they will be seen by the ceph-volume command:
+** `salt-run disks.details`
+----
+
 
 
 
