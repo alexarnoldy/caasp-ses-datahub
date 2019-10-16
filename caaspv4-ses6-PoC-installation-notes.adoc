@@ -394,13 +394,15 @@ WARNING: This procedure assumes all OSD devices are the same capacity throughout
 * Identify all devices to be zapped, on a per node basis: `for EACH in a b c; do cat /dev/null > ses-osd-$EACH-disks-to-zap; ssh ses-osd-$EACH  lsblk | grep $CAPACITY | grep disk | awk '{print$1}' >> ses-osd-$EACH-disks-to-zap; done`
 * Validate that the disks to be zapped for each OSD Node are correct: `grep -v suse ses-osd-*-disks-to-zap`
 
-NOTE: Additional devices, such as SATA/SAS/NVMe SSDs can be added to each file to zap all devices at the same time. 
+NOTE: Additional devices, such as SATA/SAS/NVMe SSDs can be added to each file to zap all devices at the same time. This will also help in verifying all devices at the end of the procedure.
 
 * Zap the beginning of each drive:
 ** `for EACH in a b c; do for DISK in `cat ses-osd-$EACH-disks-to-zap`; do echo ses-osd-$EACH:$DISK; ssh ses-osd-$EACH sudo dd if=/dev/zero of=/dev/$DISK bs=512 count=34 oflag=direct; done; done`
 * Zap the end of each drive:
 ** `for EACH in a b c; do for DISK in `cat ses-osd-$EACH-disks-to-zap`; do export BLOCKDEV=`ssh ses-osd-$EACH sudo blockdev --getsz /dev/$DISK`; echo ses-osd-$EACH:$DISK; ssh ses-osd-$EACH  sudo dd if=/dev/zero of=/dev/$DISK bs=512 count=33 seek=$(($BLOCKDEV - 33)) oflag=direct; done; done`
 * Return to the beginning of the step, changing the CAPACITY="" variable, to zap any additional devices that weren't zapped in the first effort.
+* Verify that the disk labels have been removed from all of the devices
+** `for EACH in a b c; do echo ses-osd-$EACH; for DISK in `cat ses-osd-$EACH-disks-to-zap`; do ssh ses-osd-$EACH sudo parted -s /dev/$DISK print free 1>/dev/null; done; done`
 
 
 
