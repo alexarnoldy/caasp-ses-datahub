@@ -417,7 +417,7 @@ TIP: Peform the following steps on the Administrative Workstation, which is also
 * The contents of `/etc/salt/minion_id` must be included in what is returned by `sudo salt-key -L`
 ** If not, consult the deployment guide for remediation
 
-.Run the prep and discovery Salt stages
+.Run the prep and discovery Salt stages of the deployment
 * Switch to the root user: `sudo -i`
 * Verify that all of the Salt minions (OSD Nodes) are correctly targeted: `salt 'ses*' test.ping`
 ** The Administrative Workstation and all of the OSD Nodes respond with "True"
@@ -485,6 +485,12 @@ default:
     rotational: 0
     size: ':1TB'
 ----
+
+.Run the configure and deploy Salt stages of the deployment
+* Ensure the "/srv/pillar/ceph" directory is owned by the salt user and group: `chown -R salt:salt /srv/pillar/ceph`
+* Run the configure Salt stage: `salt-run state.orch ceph.stage.2`
+** This command can take several minutes to complete
+* Run the deploy Salt stage: `salt-run state.orch ceph.stage.3`
 
 
 
