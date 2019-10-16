@@ -417,8 +417,20 @@ TIP: Peform the following steps on the Administrative Workstation, which is also
 * The contents of `/etc/salt/minion_id` must be included in what is returned by `sudo salt-key -L`
 ** If not, consult the deployment guide for remediation
 
-.Run the 
-*
+.Run the prep and discovery Salt stages
+* Switch to the root user: `sudo -i`
+* Verify that all of the Salt minions (OSD Nodes) are correctly targeted: `salt 'G@deepsea:*' test.ping`
+
+CAUTION: If the output includes "No minions matched the target." the /srv/pillar/ceph/deepsea_minions.sls will need to be updated before continuing. See below.
+
+** If no Salt minions "matched the target", or if additional Salt minions responded that are not part of the SES6 cluster, run the test.ping again, then update the /srv/pillar/ceph/deepsea_minions.sls file:
+*** Run the command: `salt 'ses*' test.ping` 
+*** If all of the OSD Nodes respond with "True", and no other hosts respond, update the /srv/pillar/ceph/deepsea_minions.sls file by commenting out the line `deepsea_minions: 'G@deepsea:*'` and uncommenting the line `deepsea_minions: 'ses*'`
+**** If the correct Salt minions are still not responding, attempt more targeted tests and/or consult the "Matching the Minion Name" section of the SES6 Deployment Guide:https://documentation.suse.com/ses/6/single-html/ses-deployment/#ds-minion-targeting-name
+
+* Run the prep Salt stage: `salt-run state.orch ceph.stage.0`
+* Run the discovery Salt stage: `salt-run state.orch ceph.stage.1`
+
 
 
 
