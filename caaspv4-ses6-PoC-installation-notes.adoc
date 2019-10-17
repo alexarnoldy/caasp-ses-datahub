@@ -363,6 +363,11 @@ sed -e "/^127/ s/localhost//" -e "/^127/a  $HOSTS  $(hostname)  localhost" /etc/
 mv /tmp/hosts /etc/hosts
 EOF 
 ----
+`for EACH in a b c; do echo ses-osd-$EACH; scp /tmp/hosts-file-update ses-osd-$EACH:/tmp/; done`
+
+`for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH "sudo bash /tmp/hosts-file-update"; done`
+
+`for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH cat /etc/hosts; done`
 
 ** `sudo cp -np /etc/hosts /etc/hosts.`date +"%d.%b.%Y.%H.%M"` && ls -1 /etc/hosts*`
 sed -e '/^127/ s/localhost//' -e '/^127/a 172.16.200.132 ses-osd-c.stable.suse.lab ses-osd-c localhost' /etc/hosts > /tmp/hosts
