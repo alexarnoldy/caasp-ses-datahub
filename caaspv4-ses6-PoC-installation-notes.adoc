@@ -353,7 +353,7 @@ TIP: It is recommended to fully install one OSD before continuing to the rest of
 * Ensure the time on all nodes, including the Administrative Workstation, are synchronized within two seconds of each other
 ** `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH date; done; echo Administrative Workstation; date`
 * Update the /etc/hosts file so that localhost is associated with the public IP address:
-* SSH to each OSD Node, or create the files on the admin, scp them then execute them through ssh:w
+* Create
 
 ----
 cat <<EOF>/tmp/hosts-file-update
