@@ -1,0 +1,186 @@
+# This document shows how to configure DPDK with OpenVSwitch based on a very limited configuration  
+This document is designed primarily for completeness and concision  
+  
+It does not cover:
+  - Non-SUSE operating systems
+  - Non-Intel CPU architectures or Intel architectures before Haswell
+  - Multiple huge page sizes configured on a single system
+  - Physical NICs that span NUMA nodes
+  - DPDK dedicated interfaces with different MTUs or with MTUs other than 1500 and 9000 
+  - Detailed explanations of DPDK and/or OVS options and/or functionality
+  - Connecting VM vhost virtual NICs to the OpenVSwitch (yet)
+  - How to validate and adjust your configuration for optimal results (yet)
+
+### The following steps should guide you through configuring a physical host for the highest packet handling performance between the physical NICs and OpenVSwitch
+
+***
+### IMPORTANT: All L2 network configurations should be completed before beginning this procedure. This includes, but is not limited to:
+- NIC bonding (i.e. LACP)
+- Non-standard MTU
+
+#### Ensure the NICs to be allocated to a DPDK enabled OpenVSwitch bridge are supported:
+- CMD: `sudo lspci | egrep -i "net|ethernet"`
+  - The output should give the manufacturer and model of all NICs on the system
+- Go to [https://core.dpdk.org/supported/](https://core.dpdk.org/supported/), select the manufacturer to find the list of supported models
+- NOTE: NIC chipsets not listed here will almost definitely not work with DPDK
+- NOTE: A system can contain unsupported NICs, as long as they are not used with DPDK
+- NOTE: The following command can be used to associate the bus address of an interface with its logical reference (i.e. eth0):
+  - CMD: `sudo lshw -c network -businfo`
+
+#### Determine which logical CPUs will be dedicated to DPDK:  
+- Note: Determining the quantity of logical CPUs to dedicate to DPDK is beyond the scope of this document. It is recommended that a minimum of one logical CPU and its hyper-thread sibling be dedicated to DPDK
+- CMD: `grep -v suse /sys/class/net/eth*/device/{local_cpulist,numa_node}`
+  - All NICs to be used with a DPDK enabled OpenVSwitch bridge should have the same CPUs listed in `local_cpulist`
+  - All NICs to be used with a DPDK enabled OVS bridge should be on the same NUMA node
+    - The NUMA node will be needed when creating the DPDK enabled OpenVSwitch bridge
+  - Logical CPUs dedicated to a DPDK enabled OVS bridge should ONLY come from the local_cpulist of the NICs allocated to the bridge
+    - Note: If local_cpulist contains a comma in the list, i.e. `18-35,90-107`; the range following the comma are normally the hyper-thread siblings to the range preceding the comma
+- Note: It is recommended to leave the first full CPU core on a socket to the host operating system
+- Identify the hyper-thread (HT) siblings for the logical CPUs to be dedicated to DPDK
+  - Set the LCPUS variable with a SPACE SEPARATED list of logical CPUs to be dedicated to DPDK: 
+    - `LCPUS=""`
+  - Execute this for loop to show the logical CPUs and their hyper-thread siblings that will be dedicated to DPDK: `` for EACH in `echo $LCPUS`; do cat /sys/devices/system/cpu/cpu$EACH/topology/thread_siblings_list; done ``
+
+#### Check the MTU of the NICs to be used with DPDK
+- The MTU of the DPDK dedicated NICs will affect how much memory should be allocated to OpenVSwitch for packet handling
+- Note: MTUs other than the default (1500) and standard jumbo frames (9000) are out of the scope of this document
+- CMD: `grep -v suse /sys/class/net/eth*/mtu`
+
+#### Verify huge page support:
+- CMD: `lscpu | egrep -wo 'pse|pdpe1gb'`
+  - An output of `pse` indicates support for 2MiB huge pages
+  - An output of `pdpe1gb` indicates support for 1GiB huge pages
+
+ #### Calculate the number of huge pages to be configured
+- CAUTION: This example allocates 93% (PRCT_HGPGS=93) of the system's memory to huge pages, leaving 7% at the default page size for the host operating system. Ensure that the amount of memory left at the default page size meets or exceeds the minimum required for the host operating system under a production workload:
+- Set the PRCT_HGPGS variable: `PRCT_HGPGS=93`
+- Execute ONE of the following commands based on your huge page configuration:
+    - For 2MiB huge pages: ``echo $(( `grep -i memtotal /proc/meminfo | awk '{print$2}'`*$PRCT_HGPGS/100/2048 ))``
+    - For 1GiB huge pages: ``echo $(( `grep -i memtotal /proc/meminfo | awk '{print$2}'`*$PRCT_HGPGS/100/1048576))``
+    - For example, a system with 512GB of system memory: 536870912 * 93 / 100 / 2048 = 243793 huge pages
+- Note: OpenVSwitch may consume up to 1343 huge pages at 2MiB and 3 huge pages at 1GiB upon startup
+- The command `grep MemFree /proc/meminfo` can be used at any time to verify the amount of free memory available to the host operating system
+
+#### Update /etc/default/grub file:
+- Make a backup copy of the /etc/default/grub file before editing: `` sudo cp -np /etc/default/grub /etc/default/grub.`date +"%d.%b.%Y.%H.%M"` && ls -1 /etc/default/grub* ``
+- Edit the /etc/default/grub file with sudo and your editor of choice
+- Add the following to the END of the GRUB_CMDLINE_LINUX_DEFAULT line (adjusted with the appropriate values for your configuration):  
+`iommu=pt intel_iommu=on default_hugepagesz=<2M|1G> hugepagesz=<2M|1G> hugepages=<number_of_huge_pages> isolcpus=<DPDK,dedicated,cores>`
+  - For example: iommu=pt intel_iommu=on default_hugepagesz=2M hugepagesz=2M hugepages=243793 isolcpus=2,8,9,10
+
+#### Update the grub.cfg file:   
+- CMD: `sudo grub2-mkconfig -o /boot/grub2/grub.cfg`
+- CAUTION: Pay close attention to any errors found in the GRUB configuration
+
+#### Prepare to mount the hugetlbfs filesystem:  
+- CMD: `sudo mkdir /mnt/huge`
+- Add the hugetlbfs filesystem to the bottom of the /etc/fstab file: 
+  - `` sudo cp -np /etc/fstab /etc/fstab.`date +"%d.%b.%Y.%H.%M"` && ls -1 /etc/fstab* ``
+  - `sudo bash -c "echo 'nodev /mnt/huge hugetlbfs defaults 0 0' >> /etc/fstab"`
+    - Note: If you would like the fstab file to be lined up into columns, run this command: `` sudo bash -c 'column -t /etc/fstab > /tmp/fstab; mv /tmp/fstab /etc/fstab; cat /etc/fstab' ``
+- Reboot the system: `sudo reboot`
+
+#### Verify huge page settings and that hugetlbfs is mounted:
+- CMD: `grep -i ^hugepage /proc/meminfo`
+  - HugePages_Total and Hugepagesize should return the number and size of huge pages configured through GRUB  
+- CMD: `mount | grep \/mnt\/huge`
+  - Should show the hugetlbfs filesystem is mounted
+
+#### Verify the amount of free memory available to the host operating system:
+- CMD: `grep MemFree /proc/meminfo`
+
+#### Verify the correct CPU logical cores have been isolated:  
+- CMD: `cat  /sys/devices/system/cpu/isolated`
+
+#### Ensure IOMMU is enabled:  
+- CMD: `dmesg | grep "IOMMU enabled"`
+  - If the dmesg buffer has wrapped over, you can check the boot messages from the last boot:
+    - CMD: `last -x | grep runlevel | grep running`
+      - Take note of the date and time of the last boot
+    - CMD: `sudo grep -i "IOMMU enabled" /var/log/messages | grep -v sudo`
+      - The timestamp for the line containing “IOMMU enabled” should roughly match the last boot 
+- If virtio virtual NICs will be used with the OpenVSwitch, you should ensure VT-x is enabled:
+  - CMD: `lscpu | egrep -wo "vmx|svm"`
+    - The output should show either vmx or svm
+
+#### Install DPDK and support tools:  
+- CMD: `sudo zypper -n install dpdk dpdk-tools`  
+
+#### Find the bus addresses for the NICs that will use DPDK drivers:  
+- CMD: `sudo modprobe vfio-pci` 
+- CMD: `sudo dpdk-devbind --status | sed -n '/^Network/,/^Other/p' | grep -v ^Other`
+  - The NICs to be bound to DPDK should be listed in the “Network devices using kernel driver” section
+  - Take note of the bus addresses (i.e. `0000:02:00.1`) in the first column, and the associated interface names (i.e. eth0) shown as `if=<interface name>`
+- Configure the array below with a SPACE SEPARATED list of the bus addresses, i.e. BUS_ADDRS=(0000:02:00.0 0000:02:00.1), of all of the NICs to be bound to DPDK:
+  - CMD: `` BUS_ADDRS=() `` 
+  - The correct association of bus addresses and interface names will be needed to create the DPDK enabled OvS bridge
+- CMD: `ip a`
+  - Ensure none of the interfaces to be associated with DPDK are currently in use by a bridge or have IP addresses assigned to them
+
+#### Bind each NIC to the vfio-pci driver: 
+- If you haven't already, configure the array below with a SPACE SEPARATED list of the bus addresses, i.e. BUS_ADDRS=(0000:02:00.0 0000:02:00.1), of all of the NICs to be bound to DPDK:
+  - CMD: `` BUS_ADDRS=() `` 
+- CMD: `` for EACH in ${BUS_ADDRS[@]}; do sudo dpdk-devbind --bind=vfio-pci $EACH; done ``
+
+#### Make each NIC to driver binding persistent (run once for each NIC):  
+- driverctl is an optional tool that provides an easy way to make driver bindings persist across reboots. This can also be added after testing DPDK binding to NICs
+  - driverctl is available for SLES in Package Hub, but is not a supported software package
+- CMD: `sudo zypper -n install driverctl` 
+- If you haven't already, configure the array below with a SPACE SEPARATED list of the bus addresses, i.e. BUS_ADDRS=(0000:02:00.0 0000:02:00.1), of all of the NICs to be bound to DPDK:
+  - CMD: `` BUS_ADDRS=() ``
+- CMD: `` for EACH in ${BUS_ADDRS[@]}; do sudo driverctl set-override $EACH vfio-pci; done ``
+    - The command `sudo driverctl list-overrides` can be used at any time to verify driver bindings that are being enforced by driverctl
+
+#### Install and configure OpenVSwitch:  
+- Install and start OpenVSwitch:  
+  - CMD: `sudo zypper -n install openvswitch`  
+  - CMD: `sudo systemctl start openvswitch && sudo systemctl enable openvswitch`
+- Determine the amount of memory OVS will initially reserve for packet handling:
+    - System configured with 2MiB huge pages:
+      - For MTU of 1500, configure OVS with 856MiB of memory
+      - For MTU of 9000, configure OVS with 2686MiB of memory
+    - System configured with 1GiB huge pages:
+      - For MTU of 1500, configure OVS with 1024MiB of memory
+      - For MTU of 9000, configure OVS with 3072MiB of memory 
+- Allocate memory to OVS from the appropriate NUMA node:
+  - Note: In the command below, the `<numa,list>` argument uses with the following pattern, where `XYZ` is the quantity of memory to allocate to OVS (without the MiB suffix), as determined above: 
+    - For NUMA node 0 `XYZ`
+    - For NUMA node 1 `0,XYZ`
+    - For NUMA node 2 `0,0,XYZ`
+    - For NUMA node 3 `0,0,0,XYZ`
+  - CMD: `sudo ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-socket-mem=<numa,list>`
+    - I.e. For 856MiB of memory allocated from NUMA node 2: `sudo ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-socket-mem=0,0,856`
+- Pin the DPDK PMD threads to the DPDK dedicated CPU cores:
+  - Note: The`<hex mask>` value can be determined with the hexadecimal mask output of the [cpu_mask_calculator.sh](/SAP_HANA_on_KVM/Research/cpu_mask_calculator.sh) script
+  - CMD: `sudo ovs-vsctl set Open_vSwitch . other_config:pmd-cpu-mask=<hex mask>`
+- Note: This implementation uses the default settings for dpdk-lcore-mask, which leaves DPDK initialization threads to be managed by the Linux scheduler  
+  - Initialize DPDK in OVS:
+    - CMD: `sudo ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-init=true`
+      - The command `sudo ovs-vsctl list Open_vSwitch . | egrep '(dpdk_init|dpdk-init)'` can be used at any time to verify OpenVSwitch is using DPDK
+
+#### Create an OVS bridge that leverages the DPDK enabled NICs:  
+- CMD: `sudo ovs-vsctl add-br <bridge name, i.e. br0> -- set bridge <bridge name> datapath_type=netdev`
+- Add the DPDK enabled NICs to the OvS bridge:
+  - NOTE: The bridge can use individual NICs or a bonded set of NICs
+  - To add individual NICS:
+    - Be sure to use the correctly associated interface names and bus addresses
+    - Repeat the following command for every DPDK enabled NIC to be added to the OVS bridge  
+      - CMD: `sudo ovs-vsctl add-port <bridge name> dpdk-<interface name> -- set Interface dpdk-<interface name> type=dpdk options:dpdk-devargs=<bus address>`
+      - Note: An example of `dpdk-<interface name>` might be dpdk-eth0
+      - Note: An example of a `<bus address>` might be 0000:02:00.1
+  - To add a bonded set of NICs:
+    - Note: The example below adds a bond of two NICs. The command can be extended for a bond with more than two NICs
+    - CMD: `sudo ovs-vsctl add-bond <bridge name> dpdk-<interface1 name> dpdk-<interface2 name> \`  
+    `-- set Interface dpdk-<interface1 name> type=dpdk options:dpdk-devargs=<bus1 address> \`  
+    `-- set Interface dpdk-<interface2 name> type=dpdk options:dpdk-devargs=<bus2 address>`
+    - Note: An example of `dpdk-<interface1 name>` might be dpdk-eth0
+    - Note: An example of a `<bus1 address>` might be 0000:02:00.1
+
+`FIXME: NEED TO CONSOLIDATE ALL FUNCTIONAL TESTS FROM ABOVE, PLUS USING pidstat TO VERIFY CPU PINNING AND ISOLATION AS WELL AS MEMORY ALLOCATION FOR DPDK`
+
+
+
+
+
+
+
