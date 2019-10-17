@@ -352,6 +352,8 @@ TIP: It is recommended to fully install one OSD before continuing to the rest of
 ** `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH ip a; echo "Press Enter for next system" && read NEXT; done`
 * Ensure the time on all nodes, including the Administrative Workstation, are synchronized within two seconds of each other
 ** `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH date; done; echo Administrative Workstation; date`
+* Update the /etc/hosts file so that localhost is associated with the public IP address:
+** `sudo cp -np /etc/hosts /etc/hosts.`date +"%d.%b.%Y.%H.%M"` && ls -1 /etc/hosts*`
 
 .Begin configuring the Administrative Workstation for deploying the SES6 cluster software
 
