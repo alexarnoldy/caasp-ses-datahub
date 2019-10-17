@@ -355,6 +355,20 @@ TIP: It is recommended to fully install one OSD before continuing to the rest of
 * Update the /etc/hosts file so that localhost is associated with the public IP address:
 * SSH to each OSD Node, or create the files on the admin, scp them then execute them through ssh:w
 
+----
+cat /tmp/hosts-file-update 
+sudo cp -np /etc/hosts /etc/hosts.17.Oct.2019.16.42 && ls -1 /etc/hosts*
+HOSTS=`getent hosts $(hostname)`
+sed -e "/^127/ s/localhost//" -e "/^127/a  $HOSTS  $(hostname) localhost" /etc/hosts > /tmp/hosts
+sudo mv /tmp/hosts /etc/hosts
+geeko@ses-admin:~> cat <<EOF>/tmp/hosts-file-update
+sudo cp -np /etc/hosts /etc/hosts.\`date +"%d.%b.%Y.%H.%M"\` && ls -1 /etc/hosts*
+HOSTS=\`getent hosts \$(hostname)\`
+sed -e "/^127/ s/localhost//" -e "/^127/a  \$HOSTS  \$(hostname) localhost" /etc/hosts > /tmp/hosts
+sudo mv /tmp/hosts /etc/hosts
+EOF
+----
+
 ** `sudo cp -np /etc/hosts /etc/hosts.`date +"%d.%b.%Y.%H.%M"` && ls -1 /etc/hosts*`
 sed -e '/^127/ s/localhost//' -e '/^127/a 172.16.200.132 ses-osd-c.stable.suse.lab ses-osd-c localhost' /etc/hosts > /tmp/hosts
 sudo mv /tmp/host /etc/hosts
