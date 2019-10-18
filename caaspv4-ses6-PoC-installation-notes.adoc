@@ -424,7 +424,7 @@ WARNING: This procedure assumes all OSD and cache/db devices are the same capaci
 ** `for EACH in a b c; do cat /dev/null > ses-osd-$EACH-disks-to-zap; ssh ses-osd-$EACH  lsblk | grep $CAPACITY | grep disk | awk '{print$1}' >> ses-osd-$EACH-disks-to-zap; done`
 * Validate that the disks to be zapped for each OSD Node are correct: `grep -v suse ses-osd-*-disks-to-zap`
 
-NOTE: Additional devices, such as SATA/SAS/NVMe SSDs can be added to each file to zap all devices at the same time. This will also help in verifying all devices at the end of the procedure.
+NOTE: Additional devices, such as SATA/SAS/NVMe SSDs can be manually added to each file to zap all devices at the same time. This will also help in verifying all devices at the end of the procedure.
 
 * Zap the beginning of each drive:
 ** `for EACH in a b c; do for DISK in `cat ses-osd-$EACH-disks-to-zap`; do echo ses-osd-$EACH:$DISK; ssh ses-osd-$EACH sudo dd if=/dev/zero of=/dev/$DISK bs=512 count=34 oflag=direct; done; done`
@@ -447,8 +447,8 @@ TIP: Peform the following steps on the Administrative Workstation, which is also
 .Configure the Administrative Workstation for the role of Salt Master
 
 * Install the deepsea package : `sudo zypper -n install deepsea`
-* The contents of `/etc/salt/minion_id` must be included in what is returned by `sudo salt-key -L`
-** If not, consult the Deployment Guide for remediation
+* Ensure the contents of the /etc/salt/minion_id file matches what is reported by the command "sudo salt-key -L": `sudo salt-key -L | grep $(sudo cat /etc/salt/minion_id)`
+** The output should be the fully qualified hostname of the Administrative Workstation. If not, consult the Deployment Guide for remediation
 
 .Run the prep and discovery Salt stages of the deployment
 * Switch to the root user: `sudo -i`
