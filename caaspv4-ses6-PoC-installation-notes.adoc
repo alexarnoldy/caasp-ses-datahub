@@ -363,6 +363,10 @@ sudo mv /tmp/hosts /etc/hosts
 EOF
 ----
 
+////
+Need to make sure that the DHCP for eth1 is removed
+////
+
 * Execute the file on the Administrative Workstation: `sudo bash /tmp/hosts-file-update`
 
 * Copy the file to the OSD Nodes: `for EACH in a b c; do echo ses-osd-$EACH; scp /tmp/hosts-file-update ses-osd-$EACH:/tmp/; done`
@@ -527,6 +531,12 @@ default:
     rotational: 0
     size: ':1TB'
 ----
+
+.Update the /srv/pillar/ceph/stack/global.yml file to disable the need for BTRFS subvolumes:
+* `echo "subvolume_init: disabled" >> /srv/pillar/ceph/stack/global.yml`
+* Refresh the Salt pillar: `salt '*' saltutil.refresh_pillar`
+** The Administrative Workstation and all of the OSD Nodes should respond with "True"
+
 
 .Run the configure and deploy Salt stages of the deployment
 * Ensure the "/srv/pillar/ceph" directory is owned by the salt user and group: `chown -R salt:salt /srv/pillar/ceph`
