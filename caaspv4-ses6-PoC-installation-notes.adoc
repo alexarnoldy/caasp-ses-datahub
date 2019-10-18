@@ -372,22 +372,27 @@ EOF
 
 
 .Begin configuring the Administrative Workstation for deploying the SES6 cluster software
+////
+This is the location of the snapshot on ses-admin
+////
 
 TIP: If the Administrative Workstation is a virtual machine, it is recommended to take a snapshot before continuing
 
 TIP: Peform the following steps on the Administrative Workstation, which is also the Salt Master
 
-* Install the salt-master and salt-minion packages on the Salt Master (ses-admin) 
+* Install the salt-master and salt-minion packages on the Salt Master (Administrative Workstation) 
 ** `sudo zypper -n install salt-master salt-minion`
 * Ensure the salt-master salt-minion services are started and enabled
-** `sudo systemctl start salt-master.service && sudo systemctl enable salt-master.service`
-** `sudo systemctl start salt-minion.service && sudo systemctl enable salt-minion.service`
-*** The output should show that a symlink was created
+** `sudo systemctl start salt-master.service && sudo systemctl enable salt-master.service && sudo systemctl status salt-master.service | egrep "(Loaded|Active)"`
+** `sudo systemctl start salt-minion.service && sudo systemctl enable salt-minion.service && sudo systemctl status salt-minion.service | egrep "(Loaded|Active)"`
+*** The "Loaded" lines should show that the services are enabled (the Vendor preset will remain as disabled) and the "Active" lines should show that the services are active
 
 .Install, start and enable the salt-minion software on all OSD Nodes
-* `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH sudo zypper -n install salt-minion; done`
-* `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH sudo systemctl start salt-minion.service && sudo systemctl enable salt-minion.service salt-minion; done`
-** The output from each OSD Node should show that a symlink was created
+* Install the salt-minion software on the OSD Nodes:
+** `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH sudo zypper -n install salt-minion; done`
+* Start and enable the salt-minion service on the OSD Nodes:
+** `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH sudo systemctl start salt-minion.service && sudo systemctl enable salt-minion.service salt-minion; sudo systemctl status salt-minion.service | egrep "(Loaded|Active)"; done`
+*** The "Loaded" line should show that the service is enabled (the Vendor preset will remain as disabled) and the "Active" line should show that the service is active
 
 
 .Verify each Salt minion's fingerprint:
