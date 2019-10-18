@@ -406,9 +406,9 @@ TIP: Peform the following steps on the Administrative Workstation, which is also
 
 CAUTION: All of the salt-minion keys listed under "Unaccepted Keys" must be associated with a fully qualified hostname. If the Administrative Workstation (ses-admin.stable.suse.lab in this document) and/or any of the OSD Nodes are not reporting their fully qualified hostname with the `sudo salt-key -F` command, do not continue. Consult the SES6 Deployment Guide for more information: https://documentation.suse.com/ses/6/single-html/ses-deployment/
 
-.Accept the the salt minion's keys, if the match what the OSD Nodes reported
-* sudo salt-key --accept-all
-* sudo salt-key --list-all
+.If the minion's keys are associated with a fully qualified hostname and match what the OSD Nodes reported, have the Salt Master accept them:
+* `sudo salt-key --accept-all`
+* `sudo salt-key --list-all`
 
 #### Prior to deploying SES6, manually zap all of the disks that will be used as OSD devices
 .Determine the capacity of the OSD devices that will be used, as reported by lsblk
