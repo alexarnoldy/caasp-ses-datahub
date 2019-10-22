@@ -102,6 +102,7 @@ spec:
     storage: 1Gi
   accessModes:
     - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
   rbd:
     monitors:
     - 10.107.125.231:6789
@@ -199,6 +200,7 @@ metadata:
   annotations:
      storageclass.beta.kubernetes.io/is-default-class: "true"
 provisioner: kubernetes.io/rbd
+reclaimPolicy: Retain
 parameters:
   monitors: 172.16.200.132:6789,172.16.200.133:6789,172.16.200.134:6789
   adminId: admin
