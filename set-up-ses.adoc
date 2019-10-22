@@ -239,3 +239,9 @@ Use -n to place in the appropriate namespace, or set the default security-contex
 
 
 
+
+
+
+
+// vim: set syntax=asciidoc:
+
