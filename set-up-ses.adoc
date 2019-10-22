@@ -66,96 +66,104 @@ docker exec -it $(docker ps -q -f name="salt-master") salt -P 'roles:(admin|kube
 Used this procedure to test the ability to create an RBD volume (from CaaSP admin), allocate a PV to it, bind a PVC to that, then consume the PVC in a pod:
 
 
-Create the pool and enable RBD support (use ceph osd calculator to get CephPGSize)
-export CephPool="data-hub-demo-pool" CephPGSize="16"
-ceph osd pool create ${CephPool} ${CephPGSize}
-ceph osd pool ls
-ceph osd pool application enable ${CephPool} rbd
-ceph osd pool application get ${CephPool}
+.Create the pool and enable RBD support (use ceph osd calculator to get CephPGSize)
+* export CephPool="data-hub-demo-pool" CephPGSize="16"
+* ceph osd pool create ${CephPool} ${CephPGSize}
+* ceph osd pool ls
+* ceph osd pool application enable ${CephPool} rbd
+* ceph osd pool application get ${CephPool}
 
 
-Create the user that will manage the pool 
-export CephUser="data-hub-demo" CephPool="data-hub-demo-pool"
-ceph auth get-or-create client.${CephUser} mon 'allow r' osd \'allow class-read object_prefix rbd_children, allow rwx pool=${CephPool}\' -o ceph.client.${CephUser}.keyring
+.Create the user that will manage the pool 
+* export CephUser="data-hub-demo" CephPool="data-hub-demo-pool"
+* ceph auth get-or-create client.${CephUser} mon 'allow r' osd "allow class-read object_prefix rbd_children, allow rwx pool=${CephPool}" -o ceph.client.${CephUser}.keyring
 
 
-Create the 1G volume
-rbd create -s 1G data-hub-demo-pool/manual-volume
+.Create the 1G volume
+* rbd create -s 1G data-hub-demo-pool/manual-volume
 
-Save the admin’s client key
-ceph auth get-key client.admin | base64
+.Save the admin’s client key
+* ceph auth get-key client.admin | base64
 
-Save the user’s client key
-export CephUser="data-hub-demo"
-ceph auth get-key client.${CephUser} | base64
-
-
-#####Create the PV that references the RBD volume
-#####kubectl apply -f - << *EOF*
-#####apiVersion: v1
-#####kind: PersistentVolume
-#####metadata:
-#####  name: manual-pv
-#####spec:
-#####  capacity:
-#####    storage: 1Gi
-#####  accessModes:
-#####    - ReadWriteOnce
-#####  rbd:
-#####    monitors:
-#####    - 172.16.200.132:6789
-#####    - 172.16.200.133:6789
-#####    - 172.16.200.134:6789
-#####    pool: data-hub-demo-pool
-#####    image: manual-volume
-#####    user: data-hub-demo
-#####    secretRef:
-#####      name: ceph-secret-data-hub-demo
-#####    fsType: ext4
-#####    readOnly: false
-#####*EOF*
-#####
-#####Create the PVC for 1Gi
-#####kubectl apply -f - << *EOF*
-#####kind: PersistentVolumeClaim
-#####apiVersion: v1
-#####metadata:
-#####  name: manual-pvc
-#####spec:
-#####  accessModes:
-#####    - ReadWriteOnce
-#####  resources:
-#####    requests:
-#####      storage: 1Gi
-#####*EOF*
-#####
-#####Create an Alpine Linux pod to consume the PVC
-#####kubectl apply -f - <<*EOF*
-#####apiVersion: v1
-#####kind: Pod
-#####metadata:
-#####  name: manual-pod
-#####spec:
-#####  containers:
-#####  - name: alpine
-#####    image: alpine
-#####    command: ["sleep","3600"]
-#####    volumeMounts:
-#####    - mountPath: /mnt/rbdvol
-#####      name: rbdvol
-#####  volumes:
-#####  - name: rbdvol
-#####    persistentVolumeClaim:
-#####      claimName: manual-pvc
-#####*EOF*
-#####
-#####Exec into the pod to verify the volume is mounted
-#####kubectl exec -it manual-pod -- sh
-#####mount | grep rbd
+.Save the user’s client key
+* export CephUser="data-hub-demo"
+* ceph auth get-key client.${CephUser} | base64
 
 
-Required commands and Manifests:
+.Create the PV that references the RBD volume
+----
+kubectl apply -f - << EOF
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: manual-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  rbd:
+    monitors:
+    - 10.107.125.231:6789
+    - 10.101.82.202:6789
+    - 10.96.50.227:6789
+    pool: data-hub-demo-pool
+    image: manual-volume
+    user: data-hub-demo
+    secretRef:
+      name: ceph-secret-data-hub-demo
+    fsType: ext4
+    readOnly: false
+EOF
+----
 
+.Create the PVC for 1Gi
+----
+kubectl apply -f - << EOF
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: manual-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+EOF
+----
+
+.Create an Alpine Linux pod to consume the PVC
+----
+kubectl apply -f - << EOF
+apiVersion: v1
+kind: Pod
+metadata:
+  name: manual-pod
+spec:
+  containers:
+  - name: alpine
+    image: alpine
+    command: ["sleep","3600"]
+    volumeMounts:
+    - mountPath: /mnt/rbdvol
+      name: rbdvol
+  volumes:
+  - name: rbdvol
+    persistentVolumeClaim:
+      claimName: manual-pvc
+EOF
+----
+
+.Exec into the pod to verify the volume is mounted
+`kubectl exec -it manual-pod -- sh`
+`mount | grep rbd`
+
+
+### Required commands and Manifests:
+
+----
+kubectl apply -f - << EOF
 apiVersion: v1
 kind: Secret
 metadata:
@@ -163,11 +171,13 @@ metadata:
 type: "kubernetes.io/rbd"
 data:
   key: QVFDbGlXdGNBQUFBQUJBQU1SZ1Vlamo1RkNHL2J2TEJwbUtEVXc9PQ==
+EOF
+----
+* key is encoded base64
+* Use -n to place in the appropriate namespace
 
-key is encoded base64
-Use -n to place in the appropriate namespace
-======================
-
+----
+kubectl apply -f - << EOF
 apiVersion: v1
 kind: Secret
 metadata:
@@ -175,11 +185,13 @@ metadata:
 type: "kubernetes.io/rbd"
 data:
   key: QVFDUU12WmN4VjV2RXhBQUVoekU5MWt3YmlHNmF0dzVPYUU0WUE9PQ==
+EOF
+----
+* key is encoded base64
+* Use -n to place in the appropriate namespace
 
-key is encoded base64
-Use -n to place in the appropriate namespace
-======================
-
+----
+kubectl apply -f - << EOF
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
@@ -195,12 +207,15 @@ parameters:
   pool: data-hub-demo-pool
   userId: data-hub-demo
   userSecretName: ceph-secret-data-hub-demo
+EOF
+----
 
-Change the adminSecretNamespace to the appropriate one
-Check to see that the storage class was set as the default. If not, set the default storageclass:
-kubectl patch storageclass ses-rbd-sc -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-======================
+* Change the adminSecretNamespace to the appropriate one
+* Check to see that the storage class was set as the default. If not, set the default storageclass:
+** ` kubectl patch storageclass ses-rbd-sc -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}' `
 
+----
+kubectl apply -f - << EOF
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
@@ -212,9 +227,13 @@ spec:
   resources:
     requests:
       storage: 1Gi
-Use -n to place in the appropriate namespace, or set the default security-context for kubectl
-======================
+EOF
+----
 
+* Use -n to place in the appropriate namespace, or set the default security-context for kubectl
+
+----
+kubectl apply -f - << EOF
 kind: Pod
 apiVersion: v1
 metadata:
@@ -233,8 +252,10 @@ spec:
       volumeMounts:
         - mountPath: "/tmp"
           name: task-pv-storage
+EOF
+----
 
-Use -n to place in the appropriate namespace, or set the default security-context for kubectl
+* Use -n to place in the appropriate namespace, or set the default security-context for kubectl
 
 
 
