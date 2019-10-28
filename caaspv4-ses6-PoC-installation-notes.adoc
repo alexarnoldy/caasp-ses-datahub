@@ -398,7 +398,7 @@ TIP: Peform the following steps on the Administrative Workstation, which is also
 ** `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH sudo systemctl start salt-minion.service && sudo systemctl enable salt-minion.service salt-minion; sudo systemctl status salt-minion.service | egrep "(Loaded|Active)"; done`
 *** The "Loaded" line should show that the service is enabled (the Vendor preset will remain as disabled) and the "Active" line should show that the service is "active (running)"
 * Identify the Salt master for each minion:
-** `getent hosts $(hostname) | awk '{print$2}' > /tmp/master.conf`
+** `MASTER=`getent hosts $(hostname) | awk '{print$2}'`; echo "master: $MASTER" > /tmp/master.conf`
 ** `for EACH in a b c; do echo ses-osd-$EACH; scp /tmp/master.conf ses-osd-$EACH:/tmp/; done`
 ** `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH sudo mv /tmp/master.conf /etc/salt/minion.d/; done`
 
