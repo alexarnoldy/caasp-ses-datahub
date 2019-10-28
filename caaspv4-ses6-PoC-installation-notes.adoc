@@ -417,16 +417,19 @@ CAUTION: All of the salt-minion keys listed under "Unaccepted Keys" must be asso
 ** `sudo salt-key --list-all`
 
 #### Prior to deploying SES6, manually zap all of the disks that will be used as OSD devices
-.Determine the capacity of the OSD devices that will be used, as reported by lsblk
+.Determine the capacity of the OSD, and possibly cache/db devices that will be used, as reported by lsblk
 ** `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH  lsblk | grep disk; done`
 
-WARNING: This procedure assumes all OSD and cache/db devices are the same capacity throughout the SES cluster. It is beyond the scope of this document to initialize the cluster with heterogeneous OSD and/oor cache/db devices.
+WARNING: This procedure assumes all OSD and cache/db devices are the same capacity throughout the SES cluster. It is beyond the scope of this document to initialize the cluster with heterogeneous OSD and/or cache/db devices.
 
 .Create a per OSD Node file containing the disks to be zapped
 * Set this variable to the capacity of the devices to be zapped, exactly as reported by lsblk: `CAPACITY=""`
 ** For example: If lsblk reports `sdb       8:16   0   5.5T  0 disk`, the capacity to use would be "5.5T"
 * Identify all OSD devices to be zapped, on a per node basis: 
 ** `for EACH in a b c; do cat /dev/null > ses-osd-$EACH-disks-to-zap; ssh ses-osd-$EACH  lsblk | grep $CAPACITY | grep disk | awk '{print$1}' >> ses-osd-$EACH-disks-to-zap; done`
+* Perform this step ONLY TO ADD MORE DEVICES to be zapped (i.e. cache/db devices) to the ses-osd-*-disks-to-zap files:
+** Set this variable to the capacity of the devices to be added to the files, exactly as reported by lsblk: `CAPACITY=""`
+** `for EACH in a b c; do ssh ses-osd-$EACH  lsblk | grep $CAPACITY | grep disk | awk '{print$1}' >> ses-osd-$EACH-disks-to-zap; done`
 * Validate that the disks to be zapped for each OSD Node are correct: `grep -v suse ses-osd-*-disks-to-zap`
 
 NOTE: Additional devices, such as SATA/SAS/NVMe SSDs can be manually added to each file to zap all devices at the same time. This will also help in verifying all devices at the end of the procedure.
@@ -435,9 +438,6 @@ NOTE: Additional devices, such as SATA/SAS/NVMe SSDs can be manually added to ea
 ** `for EACH in a b c; do for DISK in `cat ses-osd-$EACH-disks-to-zap`; do echo ses-osd-$EACH:$DISK; ssh ses-osd-$EACH sudo dd if=/dev/zero of=/dev/$DISK bs=512 count=34 oflag=direct; done; done`
 * Zap the end of each drive:
 ** `for EACH in a b c; do for DISK in `cat ses-osd-$EACH-disks-to-zap`; do export BLOCKDEV=`ssh ses-osd-$EACH sudo blockdev --getsz /dev/$DISK`; echo ses-osd-$EACH:$DISK; ssh ses-osd-$EACH  sudo dd if=/dev/zero of=/dev/$DISK bs=512 count=33 seek=$(($BLOCKDEV - 33)) oflag=direct; done; done`
-* Perform this step ONLY TO ADD MORE DEVICES to be zapped (i.e. cache/db devices) to the ses-osd-*-disks-to-zap files:
-** Set this variable to the capacity of the devices to be zapped, exactly as reported by lsblk: `CAPACITY=""`
-** `for EACH in a b c; do ssh ses-osd-$EACH  lsblk | grep $CAPACITY | grep disk | awk '{print$1}' >> ses-osd-$EACH-disks-to-zap; done`
 * Verify that the disk labels have been removed from all of the devices
 ** `for EACH in a b c; do echo ses-osd-$EACH; for DISK in `cat ses-osd-$EACH-disks-to-zap`; do ssh ses-osd-$EACH sudo parted -s /dev/$DISK print free 1>/dev/null; done; done`
 *** Each device should return the error "unrecognised disk label"
