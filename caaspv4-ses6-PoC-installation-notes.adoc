@@ -409,7 +409,7 @@ TIP: Peform the following steps on the Administrative Workstation, which is also
 * List fingerprints of all unaccepted minion keys on the Salt master: `sudo salt-key -F`
 ** The fingerprints of all of the OSD Nodes should match what each reported
 
-CAUTION: All of the salt-minion keys listed under "Unaccepted Keys" must be associated with a fully qualified hostname. If the Administrative Workstation (ses-admin.stable.suse.lab in this document) and/or any of the OSD Nodes are not reporting their fully qualified hostname with the `sudo salt-key -F` command, do not continue. Consult the SES6 Deployment Guide for more information: https://documentation.suse.com/ses/6/single-html/ses-deployment/
+CAUTION: All of the salt-minion keys listed under "Unaccepted Keys" must be associated with a fully qualified hostname. If the Administrative Workstation (ses-admin.stable.suse.lab in this document) and/or any of the OSD Nodes are not reporting their fully qualified hostname with the `sudo salt-key -F` command, DO NOT CONTINUE. Consult the SES6 Deployment Guide for more information: https://documentation.suse.com/ses/6/single-html/ses-deployment/
 
 .If the minion's keys are associated with a fully qualified hostname and match what the OSD Nodes reported, have the Salt Master accept them:
 * `sudo salt-key --accept-all`
