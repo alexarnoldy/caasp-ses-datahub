@@ -445,7 +445,7 @@ NOTE: Additional devices, such as SATA/SAS/NVMe SSDs can be manually added to ea
 
 #### Begin deploying the SES6 cluster
 
-IMPORTANT: The procedure generally follows the official SES6 Deployment Guide: https://documentation.suse.com/ses/6/single-html/ses-deployment/#book-storage-deployment. While the intention is to keep it current, no guarantee is given that it will keep pace with any changes in the official deployment guide. It is highly recommended to review the official documentation before continuing.
+IMPORTANT: The procedure generally follows the official SES6 Deployment Guide: https://documentation.suse.com/ses/6/single-html/ses-deployment/#book-storage-deployment. While the intention is to keep it current, no guarantee is given that it will keep pace with changes to the official deployment guide. It is highly recommended to review the official documentation before continuing.
 
 TIP: Peform the following steps on the Administrative Workstation, which is also the Salt Master
 
