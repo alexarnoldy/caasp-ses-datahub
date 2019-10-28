@@ -388,6 +388,10 @@ TIP: Peform the following steps on the Administrative Workstation, which is also
 ** `sudo zypper -n install salt-master salt-minion`
 * Ensure the salt-master salt-minion services are started and enabled
 ** `sudo systemctl start salt-master.service && sudo systemctl enable salt-master.service && sudo systemctl status salt-master.service | egrep "(Loaded|Active)"`
+* Identify the Salt master for the Administrative Workstation and each minion:
+** `MASTER=`getent hosts $(hostname) | awk '{print$2}'`; echo "master: $MASTER" > /tmp/master.conf`
+** `sudo cp /tmp/master.conf /etc/salt/minion.d/`
+* Start and enable the salt-minion service
 ** `sudo systemctl start salt-minion.service && sudo systemctl enable salt-minion.service && sudo systemctl status salt-minion.service | egrep "(Loaded|Active)"`
 *** The "Loaded" lines should show that the services are enabled (the Vendor preset will remain as disabled) and the "Active" lines should show that the services are "active (running)"
 
@@ -397,9 +401,6 @@ TIP: Peform the following steps on the Administrative Workstation, which is also
 * Start and enable the salt-minion service on the OSD Nodes:
 ** `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH sudo systemctl start salt-minion.service && sudo systemctl enable salt-minion.service salt-minion; sudo systemctl status salt-minion.service | egrep "(Loaded|Active)"; done`
 *** The "Loaded" line should show that the service is enabled (the Vendor preset will remain as disabled) and the "Active" line should show that the service is "active (running)"
-* Identify the Salt master for the Administrative Workstation and each minion:
-** `MASTER=`getent hosts $(hostname) | awk '{print$2}'`; echo "master: $MASTER" > /tmp/master.conf`
-** `sudo cp /tmp/master.conf /etc/salt/minion.d/`
 ** `for EACH in a b c; do echo ses-osd-$EACH; scp /tmp/master.conf ses-osd-$EACH:/tmp/; done`
 ** `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH sudo mv /tmp/master.conf /etc/salt/minion.d/; done`
 
