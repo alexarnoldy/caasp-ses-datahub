@@ -356,10 +356,7 @@ TIP: It is recommended to fully install one OSD before continuing to the rest of
 ** Create the following file on the Administrative Workstation:
 ----
 cat <<EOF>/tmp/hosts-file-update
-sudo cp -np /etc/hosts /etc/hosts.\`date +"%d.%b.%Y.%H.%M"\` && ls -1 /etc/hosts*
-HOSTS=\`getent hosts \$(hostname)\`
-sed -e "/^127/ s/localhost//" -e "/^127/a  \$HOSTS  \$(hostname) localhost" /etc/hosts > /tmp/hosts
-sudo mv /tmp/hosts /etc/hosts
+HOSTS=\`getent hosts \$(hostname) | awk '{print\$2}'\`; test -n \`grep "\$HOSTS" /etc/hosts\` && sudo cp -np /etc/hosts /etc/hosts.\`date +"%d.%b.%Y.%H.%M"\` && ls -1 /etc/hosts* && HOSTS=\`getent hosts \$(hostname)\` && sed -e "/^127/ s/localhost//" -e "/^127/a  \$HOSTS  \$(hostname) localhost" /etc/hosts > /tmp/hosts && sudo mv /tmp/hosts /etc/hosts
 EOF
 ----
 
