@@ -370,7 +370,7 @@ Need to make sure that the DHCP for eth1 is removed
 
 * Update the /etc/hosts files on the OSD Nodes: `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH "sudo bash /tmp/hosts-file-update"; done`
 
-* Verify the /etc/hosts files are correct on the OSD Nodes: `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH cat /etc/hosts; done`
+* Verify the /etc/hosts files are correct on the OSD Nodes: `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH cat /etc/hosts; echo "Press Enter for next system" && read NEXT; done`
 
 CAUTION: If the /etc/hosts files are not correct, copy them over with the backup that was made as part of the process and manually edit each one.
 
@@ -389,14 +389,18 @@ TIP: Peform the following steps on the Administrative Workstation, which is also
 * Ensure the salt-master salt-minion services are started and enabled
 ** `sudo systemctl start salt-master.service && sudo systemctl enable salt-master.service && sudo systemctl status salt-master.service | egrep "(Loaded|Active)"`
 ** `sudo systemctl start salt-minion.service && sudo systemctl enable salt-minion.service && sudo systemctl status salt-minion.service | egrep "(Loaded|Active)"`
-*** The "Loaded" lines should show that the services are enabled (the Vendor preset will remain as disabled) and the "Active" lines should show that the services are active
+*** The "Loaded" lines should show that the services are enabled (the Vendor preset will remain as disabled) and the "Active" lines should show that the services are "active (running)"
 
 .Install, start and enable the salt-minion software on all OSD Nodes
 * Install the salt-minion software on the OSD Nodes:
 ** `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH sudo zypper -n install salt-minion; done`
 * Start and enable the salt-minion service on the OSD Nodes:
 ** `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH sudo systemctl start salt-minion.service && sudo systemctl enable salt-minion.service salt-minion; sudo systemctl status salt-minion.service | egrep "(Loaded|Active)"; done`
-*** The "Loaded" line should show that the service is enabled (the Vendor preset will remain as disabled) and the "Active" line should show that the service is active
+*** The "Loaded" line should show that the service is enabled (the Vendor preset will remain as disabled) and the "Active" line should show that the service is "active (running)"
+* Identify the Salt master for each minion:
+** `getent hosts $(hostname) | awk '{print$2}' > /tmp/master.conf`
+** `for EACH in a b c; do echo ses-osd-$EACH; scp /tmp/master.conf ses-osd-$EACH:/tmp/; done`
+** `for EACH in a b c; do echo ses-osd-$EACH; ssh ses-osd-$EACH sudo mv /tmp/master.conf /etc/salt/minion.d/; done`
 
 
 .Verify each Salt minion's fingerprint:
