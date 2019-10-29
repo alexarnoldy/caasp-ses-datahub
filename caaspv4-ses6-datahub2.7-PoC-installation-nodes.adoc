@@ -2,6 +2,7 @@
 
 CAUTION: All changes to the CaaSPv4 and SES6 procedures will be made in the linked document. All changes to the Data Hub v2.7 procedures will be made here.
 
+////
 * May want to try installing v2.6 if 2.7 is delayed by too much
 ** Some CRI-O notes from this doc: https://access.redhat.com/articles/4324391
 *** 4.2 Kaniko Image Builder
@@ -16,6 +17,27 @@ The Kaniko Image Builder supports out-of-the-box only connections to secure imag
 In order to use an insecure image registry (e.g. the proposed external image registry) in combination with the builder, the registry must be whitelisted in Pipeline Modeler by marking it as insecure.
 
 * cri-o cheat sheet: https://cheatsheet.dennyzhang.com/cheatsheet-crio-a4
+////
+
+.Update /etc/containers/registries.conf with:
+
+----
+[registries.search]
+registries = ["dhregistry.example.com", "docker.io"]
+----
+
+`kubectl create serviceaccount --namespace kube-system tiller`
+`kubectl create clusterrolebinding tiller --clusterrole=cluster-admin --serviceaccount=kube-system:tiller`
+`helm init --service-account tiller --upgrade`
+
+`kubectl create secret docker-registry dhregistry-secret -n data-hub --docker-server=dhregistry.example.com:5000 --docker-username=admin --docker-password='myp@ssw0rd' --docker-email=admin@example.com`
+
+`kubectl patch sa default -n data-hub -p '"imagePullSecrets": [{"name": "dhregistry-secret" }]'`
+
+`kubectl edit psp suse.caasp.psp.privileged`
+
+* `vi clusterrolebinding.yaml`
+`export NAMESPACE=data-hub && sed -i "s/DATAHUBNAMESPACE/${NAMESPACE}/g"  clusterrolebinding.yaml && kubectl apply -f clusterrolebinding.yaml`
 
 
 
