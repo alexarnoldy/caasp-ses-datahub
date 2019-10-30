@@ -92,7 +92,57 @@ data:
 `kubectl apply -n data-hub -f ceph-secret-data-hub-demo.yaml`
 `kubectl apply -n data-hub -f ceph-secret-admin.yaml`
 
+Management Workstation or Master Node
 
+.Create the ceph-admin-secret
+----
+# vi ceph-secret-admin.yaml
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ceph-secret-admin
+  namespace: data-hub
+type: "kubernetes.io/rbd"
+data:
+  key: QVFBcXhiVmRpVzJ5Q1JBQVpTZ0pzQTVGUmx3VTJWNTJKNTB5MHc9PQ==
+----
+
+----
+# vi ceph-secret-data-hub-demo.yaml
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ceph-secret-data-hub-demo
+  namespace: data-hub
+type: "kubernetes.io/rbd"
+data:
+  key: QVFDTHRMaGRvVEZvREJBQXRQL3Frc2hiUEhkdnYzMkdqWC9XNGc9PQ==
+----
+
+`kubectl apply -n data-hub -f ceph-secret-data-hub-demo.yaml`
+`kubectl apply -n data-hub -f ceph-secret-admin.yaml`
+
+.Ensure the SES6 storage class is the default
+* Vagrant includes a script, otherwise use k8s
+
+.Test that a PVC can be created and bound:
+----
+# vi test-pvc.yaml
+
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: test-pvc
+  namespace: data-hub
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+----
 
 
 
