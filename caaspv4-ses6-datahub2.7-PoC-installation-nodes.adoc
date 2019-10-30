@@ -42,6 +42,8 @@ registries = ["dhregistry.example.com", "docker.io"]
 .For Rook installations, must first connect to the Rook container that can manage the Ceph cluster
 `kubectl exec -it $ROOK -n rook-ceph -- bash`
 
+NOTE: The next command sets need to be run inside the rook-ceph-tools pod
+
 .Create the data-hub-demo-pool
 ----
 export CephPool="data-hub-demo-pool" CephPGSize="16"
@@ -55,6 +57,44 @@ ceph osd pool application get ${CephPool}
 `ceph auth ls | grep data-hub-demo`
 `export CephUser="data-hub-demo" CephPool="data-hub-demo-pool"`
 `ceph auth get-or-create client.${CephUser} mon 'allow r' osd "allow class-read object_prefix rbd_children, allow rwx pool=${CephPool}" -o /etc/ceph/ceph.client.${CephUser}.keyring`
+`ceph auth ls  | egrep -A1 "data-hub-demo|admin"`
+`echo -n "AQAqxbVdiW2yCRAAZSgJsA5FRlwU2V52J50y0w==" | base64`
+
+NOTE: The next commands need to be run on the Management Workstation or Master Node
+
+.Create the ceph-admin-secret
+----
+# vi ceph-secret-admin.yaml
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ceph-secret-admin
+  namespace: data-hub
+type: "kubernetes.io/rbd"
+data:
+  key: QVFBcXhiVmRpVzJ5Q1JBQVpTZ0pzQTVGUmx3VTJWNTJKNTB5MHc9PQ==
+----
+
+----
+# vi ceph-secret-data-hub-demo.yaml
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ceph-secret-data-hub-demo
+  namespace: data-hub
+type: "kubernetes.io/rbd"
+data:
+  key: QVFDTHRMaGRvVEZvREJBQXRQL3Frc2hiUEhkdnYzMkdqWC9XNGc9PQ==
+----
+
+`kubectl apply -n data-hub -f ceph-secret-data-hub-demo.yaml`
+`kubectl apply -n data-hub -f ceph-secret-admin.yaml`
+
+
+
+
 
 
 
