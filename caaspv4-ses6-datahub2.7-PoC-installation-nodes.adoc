@@ -144,6 +144,13 @@ spec:
       storage: 10Gi
 ----
 
+`kubectl apply -n data-hub -f test-pvc.yaml`
+`kubectl get pvc`
+
+.Delete the PVC after it has shown to be bound
+`kubectl delete -n data-hub -f test-pvc.yaml`
+
+
 
 
 
