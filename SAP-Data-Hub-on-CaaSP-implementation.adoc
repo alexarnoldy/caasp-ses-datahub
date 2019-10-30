@@ -155,6 +155,15 @@ sudo mount /mnt/${CephPool}/${Host}
 sudo systemctl start rbdmap.service && sudo systemctl enable rbdmap.service
 ----
 
+.Create the KVM storage pools on each physical host
+----
+virsh pool-define-as ${CephPool}-${Host} dir - - - - /mnt/${CephPool}/${Host}
+virsh pool-build ${CephPool}-${Host}
+virsh pool-start ${CephPool}-${Host}
+virsh pool-autostart ${CephPool}-${Host}
+virsh pool-list --all
+----
+
 [[anchor-30]]
 ==== Create VMs on RBD images
 
