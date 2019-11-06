@@ -10,7 +10,11 @@ CAUTION: The procedure outlined in this document leverages AutoYaST. AutoYaST wo
 ** Three CaaS Platform Worker Nodes - Must be same as Master Node
 
 .Overview of this installation procedure:
-* Manually install the SLES15 SP1 on the CaaS Platform Management Workstation
+## Need to separate the AutoYaST installation portion into a separate document
+* Manually install SLES15 SP1 on the first bare-metal host (Link in the appropriate section in the SES6 PoC doc)
+* Make an AutoYaST clone file of the first bare-metal host (Link in the appropriate section in the SES6 PoC doc)
+* Manually install the CaaS Platform Management Workstation as a virtual machine one the first bare-metal host
+* AutoYaST install the remaining bare-metal hosts (Link in the appropriate section in the SES6 PoC doc)
 * Make an AutoYaST clone file of the Management Workstation
 * Update the clone file for some basic differences between the architecture and configuration of the Management Workstation and the CaaS Platform cluster nodes
 * AutoYaST install the Master Node 
