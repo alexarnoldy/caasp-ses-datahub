@@ -477,6 +477,9 @@ CAUTION: If the output includes "No minions matched the target." the /srv/pillar
 * Run the discovery Salt stage: `salt-run state.orch ceph.stage.1`
 
 .Create the policy.cfg and drive_groups.yml file
+
+NOTE: In the example policy.cfg file below there are three OSD Nodes with Monitors collocated. The Rados Gateway (RGW) service is also collocated with the OSD Node ses-osd-c. Be sure to adjust this file to meet the needs of your own environment.
+
 * Create the policy.cfg file: 
 ----
 cat <<EOF> /srv/pillar/ceph/proposals/policy.cfg
@@ -495,6 +498,9 @@ EOF
 ----
 
 * Update the drive_groups.yml file to target the OSD Nodes:
+
+NOTE: In the example drive_groups.yml file below all rotational (HDD) drives will be used as OSD devices. All non-rotational (SSD) devices will be cache/db devices. Be sure to adjust this file to meet the needs of your own environment.
+
 ** `mv /srv/salt/ceph/configuration/files/drive_groups.yml /srv/salt/ceph/configuration/files/drive_groups.yml.orig`
 ** `grep ^# /srv/salt/ceph/configuration/files/drive_groups.yml.orig > /srv/salt/ceph/configuration/files/drive_groups.yml`
 ----
@@ -512,8 +518,7 @@ EOF
 ** `sed -i 's/I\@roles\:storage/ses-osd-\*/' /srv/salt/ceph/configuration/files/drive_groups.yml
 ////
 
-NOTE: If all rotational devices will be used as OSD devices, and all non-rotational devices will be used as cache/db devices; the drive_groups.yml file does not need to be updated
-
+.Update the drive_groups.yml file with drive capacities, if needed
 * Verify the capacity of the OSD devices and cache/db devices, as they will be seen by the ceph-volume command:
 ** `salt-run disks.details  | grep -A1 -B2 size`
 *** Ensure the capacity of a devices listed as "rotation: 1" are the same and all devices listed as "rotational: 0" are the same
@@ -540,6 +545,9 @@ default:
 * Refresh the Salt pillar: `salt '*' saltutil.refresh_pillar`
 ** The Administrative Workstation and all of the OSD Nodes should respond with "True"
 
+.Update the valdate.py file, if fewer than four OSD Nodes:
+* Update the following ling in the /srv/modules/runners/validate.py file to match the following:
+** `if (not self.in_dev_env and len(storage) < 3) or (self.in_dev_env and len(storage) < 1):`
 
 .Run the configure and deploy Salt stages of the deployment
 * Ensure the "/srv/pillar/ceph" directory is owned by the salt user and group: `chown -R salt:salt /srv/pillar/ceph`
