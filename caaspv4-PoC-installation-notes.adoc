@@ -364,17 +364,20 @@ TIP: It is recommended to fully install worker1 before continuing to the rest of
 * Repeat the previous step, "AutoYast install worker1" for each of the remaining Worker Nodes
 
 .Preparation for forming CaaS Platform cluster
+
+NOTE: The following commands should be run from the Management Workstation and require a .all_nodes file that contains the fully qualified hostnames of all cluster nodes. Create this file if it doesn't already, before continuing.
+ 
 * `eval "$(ssh-agent)"`
 * `ssh-add /home/sles/.ssh/id_rsa`
 * Verify passwordless SSH and sudo capabilities for the sles user on all nodes
-** `for EACH in master worker1 worker2 worker3; do ssh $EACH sudo hostname; done`
-*** Should return each hostname with no additional interaction required
+** `for EACH in `cat .all_nodes`; do ssh $EACH sudo hostname -f; done`
+*** It should return each fully qualified hostname with no additional interaction required
 
 .Ensure caasp, SLES, basesystem, and containers are all "Registered"
-* `for EACH in master worker1 worker2 worker3; do echo $EACH; ssh $EACH sudo SUSEConnect -s | egrep --color "caasp|SLES|basesystem|containers|\"Registered\"" && echo"" && echo "Press Enter for next system" && read NEXT; done`
+* `for EACH in `cat .all_nodes`; do echo $EACH; ssh $EACH sudo SUSEConnect -s | egrep --color "caasp|SLES|basesystem|containers|\"Registered\"" && echo"" && echo "Press Enter for next system" && read NEXT; done`
 
 .Ensure swap is not enabled on any of the CaaS Platform hosts
-* `for EACH in master worker1 worker2 worker3; do echo $EACH; ssh $EACH cat /proc/swaps; echo ""; done`
+* `for EACH in `cat .all_nodes`; do echo $EACH; ssh $EACH cat /proc/swaps; echo ""; done`
 ** Should return a header line for each node, but nothing else
 
 .Bootstrap the cluster
@@ -383,23 +386,33 @@ TIP: It is recommended to fully install worker1 before continuing to the rest of
 * `skuba cluster init --control-plane master.caaspv4.com caaspv4-cluster`
 ** Note: Since we haven't created a load balancer, we are tying our control plane directly to the master node
 * Ensure the SSH Agent is running and has the sles user's RSA key loaded
-** `eval "$(ssh-agent)"`
-** `ssh-add /home/sles/.ssh/id_rsa`
+** `ssh-add -l`
+*** If this doesn't return an SSH key, run the following commands to start ssh-agent and add the Management Workstation's key:
+**** `eval "$(ssh-agent)"`
+**** `ssh-add /home/sles/.ssh/id_rsa`
 * `cd ~/caaspv4-cluster`
 * `skuba node bootstrap --user sles --sudo --target master.caaspv4.com master`
 ** Note this command bootstraps the CaaS Platform cluster with master.caaspv4.com as the first (in this case, the only) master node. Internally, Kubernetes will assign this node the name "master"
 
 .Join worker1 to the cluster
 * Ensure the SSH Agent is running and has the sles user's RSA key loaded
-** `eval "$(ssh-agent)"`
-** `ssh-add /home/sles/.ssh/id_rsa`
+** `ssh-add -l`
+*** If this doesn't return an SSH key, run the following commands to start ssh-agent and add the Management Workstation's key:
+**** `eval "$(ssh-agent)"`
+**** `ssh-add /home/sles/.ssh/id_rsa`
 * `cd ~/caaspv4-cluster`
 * `WORKER_FQDN="worker1.caaspv4.com"`
 * `WORKER="worker1"`
 * `skuba node join --role worker --user sles --sudo --target $WORKER_FQDN $WORKER`
+----
+for WORKER_FQDN in `grep worker .all_nodes | head -1`; do WORKER=`echo $WORKER_FQDN | awk -F. '{print$1}'`; skuba node join --role worker --user sles --sudo --target $WORKER_FQDN $WORKER; done
+----
 
 .Join each of the remain worker nodes to the cluster
-* Repeat the previous step "Join worker1 to the cluster" for each of the remaining worker nodes, replacing worker1 with that node's name
+* If worker1 joined without error, join the rest of the Worker Nodes:
+----
+for WORKER_FQDN in `grep worker .all_nodes | tail -n+2`; do WORKER=`echo $WORKER_FQDN | awk -F. '{print$1}'`; skuba node join --role worker --user sles --sudo --target $WORKER_FQDN $WORKER; done
+----
 
 .Verify the status of the cluster
 * `cd ~/caaspv4-cluster/`
