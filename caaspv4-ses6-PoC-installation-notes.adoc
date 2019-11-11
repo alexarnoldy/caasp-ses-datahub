@@ -169,8 +169,10 @@ Doesn't need to be a conditional, as below
 * Insert the minimum and maximum size search parameters for the boot drive:
 ** `vim ses-osd-c.xml`
 ** Add the following element right below:
+----
   <partitioning config:type="list">
     <drive>
+----
 ----
       <initialize config:type="boolean">true</initialize>
       <skip_list config:type="list">
