@@ -189,6 +189,7 @@ Doesn't need to be a conditional, as below
   	<skip_if_more_than config:type="boolean">true</skip_if_more_than>
         </listentry>
       </skip_list>
+      <use>all</use>
 ----
 
 ** Update MINIMUM with a value that is about 100MB less, and MAXIMUM with a value that is about 100MB greater than the size of the boot drive
