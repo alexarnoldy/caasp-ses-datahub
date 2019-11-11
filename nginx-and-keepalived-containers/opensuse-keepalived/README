@@ -1,0 +1,3 @@
+* Copy nginx-lb1-keepalived.conf or nginx-lb2-keepalived.conf to keepalived.conf 
+* Build the container: sudo podman build -t opensuse-keepalived-nginx-lb:latest .
+* Run the container: sudo podman  run -it -d --restart=always --net=host --privileged --name nginx-lb-keepalived localhost/opensuse-keepalived-nginx-lb:latest

@@ -379,7 +379,7 @@ TIP: It is recommended to fully install worker1 before continuing to the rest of
 
 .Bootstrap the cluster
 * On the Management Workstation:
-* `sudo zypper in -t pattern SUSE-CaaSP-Management`
+* `sudo zypper -n install -t pattern SUSE-CaaSP-Management`
 * `skuba cluster init --control-plane master.caaspv4.com caaspv4-cluster`
 ** Note: Since we haven't created a load balancer, we are tying our control plane directly to the master node
 * Ensure the SSH Agent is running and has the sles user's RSA key loaded
