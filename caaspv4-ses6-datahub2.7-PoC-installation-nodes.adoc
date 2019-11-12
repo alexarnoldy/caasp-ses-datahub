@@ -60,15 +60,51 @@ for NODE in `cat .all_nodes`; do echo $NODE; ssh $NODE podman login --username a
 for NODE in `cat .all_nodes`; do echo $NODE; ssh $NODE podman push dhregistry.caaspv4.com/alpine:latest; done
 ----
 
-`kubectl create serviceaccount --namespace kube-system tiller`
-`kubectl create clusterrolebinding tiller --clusterrole=cluster-admin --serviceaccount=kube-system:tiller`
-`helm init --service-account tiller --upgrade`
+.Ensure all cluster nodes can reach the Internet
 
+NOTE: The pod that executes the SAP Data Hub Pipeline Engine API server must be able to access the Internet while building the container images requested by pipeline operators
+
+----
+for NODE in `cat .all_nodes`; do echo $NODE; ssh $NODE ping -c 2 opensuse.org; done
+----
+
+* Add the data-hub configuration context to the ~/caaspv4-cluster/admin.conf file:
+
+----
+- context:
+    cluster: caaspv4-cluster
+    user: kubernetes-admin
+    namespace: data-hub
+  name: data-hub
+----
+
+.Create the data-hub namespace and use the data-hub configuration context:
+----
+kubectl create namespace data-hub
+kubectl config use-context data-hub
+kubectl config get-contexts
+----
+
+
+.Create the cluster-admin clusterRoleBinding for Tiller and initialize Helm:
+----
+kubectl create serviceaccount --namespace kube-system tiller
+kubectl create clusterrolebinding tiller --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+helm init --service-account tiller --upgrade
+----
+
+////
+Testing removing port 5000 from everything
 `kubectl create secret docker-registry dhregistry-secret -n data-hub --docker-server=dhregistry.example.com:5000 --docker-username=admin --docker-password='myp@ssw0rd' --docker-email=admin@example.com`
+////
 
-`kubectl patch sa default -n data-hub -p '"imagePullSecrets": [{"name": "dhregistry-secret" }]'`
+.Create the image pull secret for the private container image registry:
+----
+kubectl create secret docker-registry dhregistry-secret -n data-hub --docker-server=dhregistry.example.com --docker-username=admin --docker-password='myp@ssw0rd' --docker-email=admin@example.com
+kubectl patch sa default -n data-hub -p '"imagePullSecrets": [{"name": "dhregistry-secret" }]'
+----
 
-`kubectl edit psp suse.caasp.psp.privileged`
+kubectl edit psp suse.caasp.psp.privileged
 
 * `vi clusterrolebinding.yaml`
 `export NAMESPACE=data-hub && sed -i "s/DATAHUBNAMESPACE/${NAMESPACE}/g"  clusterrolebinding.yaml && kubectl apply -f clusterrolebinding.yaml`
