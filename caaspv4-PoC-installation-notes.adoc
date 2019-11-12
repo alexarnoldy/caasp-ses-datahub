@@ -405,12 +405,14 @@ NOTE: The following commands should be run from the Management Workstation and r
 * `WORKER="worker1"`
 * `skuba node join --role worker --user sles --sudo --target $WORKER_FQDN $WORKER`
 ----
+cd ~/caaspv4-cluster
 for WORKER_FQDN in `grep worker .all_nodes | head -1`; do WORKER=`echo $WORKER_FQDN | awk -F. '{print$1}'`; skuba node join --role worker --user sles --sudo --target $WORKER_FQDN $WORKER; done
 ----
 
 .Join each of the remain worker nodes to the cluster
 * If worker1 joined without error, join the rest of the Worker Nodes:
 ----
+cd ~/caaspv4-cluster
 for WORKER_FQDN in `grep worker .all_nodes | tail -n+2`; do WORKER=`echo $WORKER_FQDN | awk -F. '{print$1}'`; skuba node join --role worker --user sles --sudo --target $WORKER_FQDN $WORKER; done
 ----
 
