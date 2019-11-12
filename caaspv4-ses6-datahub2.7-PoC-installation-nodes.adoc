@@ -148,9 +148,9 @@ EOF
 
 * `export NAMESPACE=data-hub && sed -i "s/DATAHUBNAMESPACE/${NAMESPACE}/g"  clusterrolebinding.yaml && kubectl apply -f clusterrolebinding.yaml`
 
-#### Special considerations need to be made to integrate Rook managed Ceph storage. This section only applies to Rook installations
+NOTE: Perform the following steps only for a Rook managed SES cluster.
 
-.Update the sles user's ~/.bashrc file:
+.Update the sles user's ~/.bashrc file and connect to the Rook container:
 
 ----
 cat <<EOF>> ~/.bashrc
@@ -158,11 +158,9 @@ ROOK=$(kubectl -n rook-ceph get pod -l app=rook-ceph-tools -o jsonpath='{.items[
 alias rook="kubectl -n rook-ceph exec -it $ROOK -- ceph “
 EOF
 ----
-
-.Connect to the Rook container that can manage the Ceph cluster:
 * `kubectl exec -it $ROOK -n rook-ceph -- bash`
 
-NOTE: The next command sets need to be run inside the rook-ceph-tools pod
+NOTE: Perform the next set of commands from the SES Administrative Workstation for a standard SES installation or from inside the rook-ceph-tools pod for a Rook managed SES cluster.
 
 .Create the data-hub-demo-pool
 ----
