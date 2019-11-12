@@ -104,13 +104,63 @@ kubectl create secret docker-registry dhregistry-secret -n data-hub --docker-ser
 kubectl patch sa default -n data-hub -p '"imagePullSecrets": [{"name": "dhregistry-secret" }]'
 ----
 
-kubectl edit psp suse.caasp.psp.privileged
+.Update the pod security policy to allow pods access to worker node's root filesystem:
+* `kubectl edit psp suse.caasp.psp.privileged`
+** Search for allowedHostPaths
+*** If it is not already set, add the following to the bottom of the file:
+----
+  allowedHostPaths:
+  - pathPrefix: /
+----
 
-* `vi clusterrolebinding.yaml`
-`export NAMESPACE=data-hub && sed -i "s/DATAHUBNAMESPACE/${NAMESPACE}/g"  clusterrolebinding.yaml && kubectl apply -f clusterrolebinding.yaml`
+.Bind the cluster role to each Data Hub service account:
+----
+cat <<EOF> clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: suse:caasp:psp:priviliged:default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: suse:caasp:psp:privileged
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: DATAHUBNAMESPACE
+- kind: ServiceAccount
+  name: vora-vsystem-DATAHUBNAMESPACE
+  namespace: DATAHUBNAMESPACE
+- kind: ServiceAccount
+  name: DATAHUBNAMESPACE-elasticsearch
+  namespace: DATAHUBNAMESPACE
+- kind: ServiceAccount
+  name: DATAHUBNAMESPACE-fluentd
+  namespace: DATAHUBNAMESPACE
+- kind: ServiceAccount
+  name: DATAHUBNAMESPACE-nodeexporter
+  namespace: DATAHUBNAMESPACE
+- kind: ServiceAccount
+  name: vora-vflow-server
+  namespace: DATAHUBNAMESPACE
+EOF
+----
 
-.For Rook installations, must first connect to the Rook container that can manage the Ceph cluster
-`kubectl exec -it $ROOK -n rook-ceph -- bash`
+* `export NAMESPACE=data-hub && sed -i "s/DATAHUBNAMESPACE/${NAMESPACE}/g"  clusterrolebinding.yaml && kubectl apply -f clusterrolebinding.yaml`
+
+#### Special considerations need to be made to integrate Rook managed Ceph storage. This section only applies to Rook installations
+
+.Update the sles user's ~/.bashrc file:
+
+----
+cat <<EOF>> ~/.bashrc
+ROOK=$(kubectl -n rook-ceph get pod -l app=rook-ceph-tools -o jsonpath='{.items[0].metadata.name}')
+alias rook="kubectl -n rook-ceph exec -it $ROOK -- ceph “
+EOF
+----
+
+.Connect to the Rook container that can manage the Ceph cluster:
+* `kubectl exec -it $ROOK -n rook-ceph -- bash`
 
 NOTE: The next command sets need to be run inside the rook-ceph-tools pod
 
