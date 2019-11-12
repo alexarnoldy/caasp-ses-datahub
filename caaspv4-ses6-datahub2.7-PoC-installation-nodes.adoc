@@ -19,11 +19,45 @@ In order to use an insecure image registry (e.g. the proposed external image reg
 * cri-o cheat sheet: https://cheatsheet.dennyzhang.com/cheatsheet-crio-a4
 ////
 
-.Update /etc/containers/registries.conf with:
+////
+Need to link in private container image registry deployment procedures here
+Need to include copying over private registry TLS certs to Admin
+////
+
+.Temporary fix for rootless podman until kernel version 4.18 which supports overlayfs under normal users:
+* Take note of all nodes that do not run this container correctly. 
+* Type `exit` in each container that does offer a command prompt ("/ #" or "/ # ^[[32;5R")
 
 ----
-[registries.search]
-registries = ["dhregistry.example.com", "docker.io"]
+cd ~/caaspv4-cluster
+for NODE in `cat .all_nodes`; do echo $NODE; ssh $NODE podman run -i -t --rm docker.io/alpine sh; done
+----
+
+* Perform the follow steps on each node that did not run the container correctly:
+----
+for NODE in `cat .all_nodes`; do echo $NODE; ssh $NODE "sed -i '/driver/ s/overlay/vfs/' /home/sles/.config/containers/storage.conf"; done
+for NODE in `cat .all_nodes`; do echo $NODE; ssh $NODE rm /home/sles/.local/share/containers/storage/libpod/bolt_state.db; done
+----
+* Re-run the loop at the beginning of this step to ensure each node can run the alpine linux pod correctly
+
+.Add private container image registry TLS certificate to each node:
+----
+for NODE in `cat .all_nodes`; do echo $NODE; scp /etc/pki/trust/anchors/dhregistry.caaspv4.com-ca.crt $NODE:/tmp; done
+for NODE in `cat .all_nodes`; do echo $NODE; ssh $NODE sudo mv /tmp/dhregistry.caaspv4.com-ca.crt /etc/pki/trust/anchors/; done
+for NODE in `cat .all_nodes`; do echo $NODE; ssh $NODE sudo update-ca-certificates; done
+----
+
+
+.Add the private container image registry to the /etc/containers/registries.conf file:
+----
+for NODE in `cat .all_nodes`; do echo $NODE; ssh $NODE "sudo sed -i 's/\[\"docker.io/\[\"dhregistry.caaspv4.com\"\\, \"docker.io/' /etc/containers/registries.conf"; done
+----
+
+.Ensure each node can push and pull to the private container image registry:
+----
+for NODE in `cat .all_nodes`; do echo $NODE; ssh $NODE podman tag docker.io/alpine:latest dhregistry.caaspv4.com/alpine:latest; done
+for NODE in `cat .all_nodes`; do echo $NODE; ssh $NODE podman login --username admin --password myp@ssw0rd dhregistry.caaspv4.com; done
+for NODE in `cat .all_nodes`; do echo $NODE; ssh $NODE podman push dhregistry.caaspv4.com/alpine:latest; done
 ----
 
 `kubectl create serviceaccount --namespace kube-system tiller`
