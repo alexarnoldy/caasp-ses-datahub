@@ -201,7 +201,7 @@ echo -n "AQCliWtcAAAAABAAMRgUejj5FCG/bvLBpmKDUw==" | base64
 `QVFDbGlXdGNBQUFBQUJBQU1SZ1Vlamo1RkNHL2J2TEJwbUtEVXc9PQ==`
 
 
-NOTE: The next commands need to be run on the Management Workstation 
+NOTE: The next commands should be run on the Management Workstation 
 
 .Create the ceph-admin-secret
 * Set this variable with the base64 encoded admin key: `ADMIN_KEY=""`
@@ -238,8 +238,37 @@ EOF
 * `kubectl apply -n data-hub -f ceph-secret-admin.yaml`
 * `kubectl apply -n data-hub -f ceph-secret-data-hub-demo.yaml`
 
-.Ensure the SES6 storage class is the default
-* Vagrant includes a script, otherwise use k8s
+.Create the SES6 storage class:
+
+NOTE: This procedure does not yet include a method for gathering IP addresses for the Monitor Nodes for a Rook managed SES cluster. The information is kept in the rook-ceph-tools pod.
+
+* Set this variable to the ssh credentials for the SES Administrative Workstation: `SSH_SES_ADMIN=""`
+** For example: SSH_SES_ADMIN=root@ses-admin.stable.suse.lab
+* Set the MONITORS variable to include the IP addresses and ports for the SES monitor nodes:
+----
+MONITORS=`ssh $SSH_SES_ADMIN "grep mon_host /etc/ceph/ceph.conf" | awk -F" = " '{print$2}' | sed 's/\, /:6789\,/g' | sed 's/$/:6789/'`
+----
+
+* Create the SES6 storage class
+----
+cat <<EOF> ses-rbd-sc.yaml
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: ses-rbd-sc
+  annotations:
+     storageclass.beta.kubernetes.io/is-default-class: "true"
+provisioner: kubernetes.io/rbd
+parameters:
+  monitors: $MONITORS
+  adminId: admin
+  adminSecretName: ceph-secret-admin
+  adminSecretNamespace: data-hub
+  pool: data-hub-demo-pool
+  userId: data-hub-demo
+  userSecretName: ceph-secret-data-hub-demo
+EOF
+----
 
 .Test that a PVC can be created and bound:
 ----
