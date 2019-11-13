@@ -162,7 +162,10 @@ EOF
 
 NOTE: Perform the next set of commands from the SES Administrative Workstation for a standard SES installation or from inside the rook-ceph-tools pod for a Rook managed SES cluster.
 
-.Create the data-hub-demo-pool
+.Create the Data Hub SES (Ceph) storage pool and enable RBD support
+
+TIP: Use the ceph osd calculator (https://ceph.com/pgcalc/) to get the number of Placement Groups for the pool (CephPGSize)
+
 ----
 export CephPool="data-hub-demo-pool" CephPGSize="16"
 ceph osd pool create ${CephPool} ${CephPGSize}
@@ -172,18 +175,39 @@ ceph osd pool application get ${CephPool}
 ----
 
 .Create the user that will manage the pool
-`ceph auth ls | grep data-hub-demo`
-`export CephUser="data-hub-demo" CephPool="data-hub-demo-pool"`
-`ceph auth get-or-create client.${CephUser} mon 'allow r' osd "allow class-read object_prefix rbd_children, allow rwx pool=${CephPool}" -o /etc/ceph/ceph.client.${CephUser}.keyring`
-`ceph auth ls  | egrep -A1 "data-hub-demo|admin"`
-`echo -n "AQAqxbVdiW2yCRAAZSgJsA5FRlwU2V52J50y0w==" | base64`
 
-NOTE: The next commands need to be run on the Management Workstation or Master Node
+TIP: Use the command `ceph auth ls | grep data-hub-demo` to ensure the user hasn't already been created. If it has, skip this step and continue onto "Gather the keys for the SES admin and data-hub-demo users"
+
+----
+export CephUser="data-hub-demo" CephPool="data-hub-demo-pool"
+ceph auth get-or-create client.${CephUser} mon 'allow r' osd "allow class-read object_prefix rbd_children, allow rwx pool=${CephPool}" -o /etc/ceph/ceph.client.${CephUser}.keyring
+----
+
+.Gather the keys for the SES admin and data-hub-demo users
+----
+ceph auth ls  | egrep -A1 "data-hub-demo|admin"
+----
+* Example ouput:
+----
+client.admin
+        key: AQCliWtcAAAAABAAMRgUejj5FCG/bvLBpmKDUw==
+----
+
+.Encode each of the keys (admin key used as an example):
+----
+echo -n "AQCliWtcAAAAABAAMRgUejj5FCG/bvLBpmKDUw==" | base64
+----
+* Example ouput:
+`QVFDbGlXdGNBQUFBQUJBQU1SZ1Vlamo1RkNHL2J2TEJwbUtEVXc9PQ==`
+
+
+NOTE: The next commands need to be run on the Management Workstation 
 
 .Create the ceph-admin-secret
+* Set this variable with the base64 encoded admin key: `ADMIN_KEY=""`
+** For example: ADMIN_KEY="QVFDbGlXdGNBQUFBQUJBQU1SZ1Vlamo1RkNHL2J2TEJwbUtEVXc9PQ=="
 ----
-# vi ceph-secret-admin.yaml
-
+cat <<EOF> ceph-secret-admin.yaml
 apiVersion: v1
 kind: Secret
 metadata:
@@ -191,12 +215,14 @@ metadata:
   namespace: data-hub
 type: "kubernetes.io/rbd"
 data:
-  key: QVFBcXhiVmRpVzJ5Q1JBQVpTZ0pzQTVGUmx3VTJWNTJKNTB5MHc9PQ==
+  key: $ADMIN_KEY
+EOF
 ----
 
+* Set this variable with the base64 encoded admin key: `DATA_HUB_KEY=""`
+** For example: DATA_HUB_KEY="QVFEaVJNdGR6K3dYTlJBQUhhTmRqS1c1eTl5MUd2VWkyZjhnS2c9PQ=="
 ----
-# vi ceph-secret-data-hub-demo.yaml
-
+cat <<EOF> ceph-secret-data-hub-demo.yaml
 apiVersion: v1
 kind: Secret
 metadata:
@@ -204,7 +230,8 @@ metadata:
   namespace: data-hub
 type: "kubernetes.io/rbd"
 data:
-  key: QVFDTHRMaGRvVEZvREJBQXRQL3Frc2hiUEhkdnYzMkdqWC9XNGc9PQ==
+  key: $DATA_HUB_KEY
+EOF
 ----
 
 `kubectl apply -n data-hub -f ceph-secret-data-hub-demo.yaml`
