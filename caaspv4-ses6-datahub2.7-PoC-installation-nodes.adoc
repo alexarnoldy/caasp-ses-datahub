@@ -219,7 +219,7 @@ data:
 EOF
 ----
 
-* Set this variable with the base64 encoded admin key: `DATA_HUB_KEY=""`
+* Set this variable with the base64 encoded data-hub-demo key: `DATA_HUB_KEY=""`
 ** For example: DATA_HUB_KEY="QVFEaVJNdGR6K3dYTlJBQUhhTmRqS1c1eTl5MUd2VWkyZjhnS2c9PQ=="
 ----
 cat <<EOF> ceph-secret-data-hub-demo.yaml
@@ -234,40 +234,9 @@ data:
 EOF
 ----
 
-`kubectl apply -n data-hub -f ceph-secret-data-hub-demo.yaml`
-`kubectl apply -n data-hub -f ceph-secret-admin.yaml`
-
-Management Workstation or Master Node
-
-.Create the ceph-admin-secret
-----
-# vi ceph-secret-admin.yaml
-
-apiVersion: v1
-kind: Secret
-metadata:
-  name: ceph-secret-admin
-  namespace: data-hub
-type: "kubernetes.io/rbd"
-data:
-  key: QVFBcXhiVmRpVzJ5Q1JBQVpTZ0pzQTVGUmx3VTJWNTJKNTB5MHc9PQ==
-----
-
-----
-# vi ceph-secret-data-hub-demo.yaml
-
-apiVersion: v1
-kind: Secret
-metadata:
-  name: ceph-secret-data-hub-demo
-  namespace: data-hub
-type: "kubernetes.io/rbd"
-data:
-  key: QVFDTHRMaGRvVEZvREJBQXRQL3Frc2hiUEhkdnYzMkdqWC9XNGc9PQ==
-----
-
-`kubectl apply -n data-hub -f ceph-secret-data-hub-demo.yaml`
-`kubectl apply -n data-hub -f ceph-secret-admin.yaml`
+.Apply the two Kubernetes secrets:
+* `kubectl apply -n data-hub -f ceph-secret-admin.yaml`
+* `kubectl apply -n data-hub -f ceph-secret-data-hub-demo.yaml`
 
 .Ensure the SES6 storage class is the default
 * Vagrant includes a script, otherwise use k8s
