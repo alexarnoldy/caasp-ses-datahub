@@ -373,7 +373,7 @@ NOTE: The following commands should be run from the Management Workstation and r
 ----
 for EACH in `cat .all_nodes`; do ssh $EACH sudo hostname -f; done
 ----
-*** It should return each fully qualified hostname with no additional interaction required
+** It should return each fully qualified hostname with no additional interaction required
 
 .Ensure caasp, SLES, basesystem, and containers are all "Registered"
 * `for EACH in `cat .all_nodes`; do echo $EACH; ssh $EACH sudo SUSEConnect -s | egrep --color "caasp|SLES|basesystem|containers|\"Registered\"" && echo"" && echo "Press Enter for next system" && read NEXT; done`
