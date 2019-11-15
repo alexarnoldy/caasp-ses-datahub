@@ -369,6 +369,7 @@ NOTE: The following commands should be run from the Management Workstation and r
  
 * `eval "$(ssh-agent)"`
 * `ssh-add /home/sles/.ssh/id_rsa`
+* `ssh-add /home/sles/.ssh/id_rsa`
 * Verify passwordless SSH and sudo capabilities for the sles user on all nodes
 ----
 for EACH in `cat .all_nodes`; do ssh $EACH sudo hostname -f; done
