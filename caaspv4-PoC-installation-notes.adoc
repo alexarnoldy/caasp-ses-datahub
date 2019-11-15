@@ -376,10 +376,14 @@ for EACH in `cat .all_nodes`; do ssh $EACH sudo hostname -f; done
 ** It should return each fully qualified hostname with no additional interaction required
 
 .Ensure caasp, SLES, basesystem, and containers are all "Registered"
-* `for EACH in `cat .all_nodes`; do echo $EACH; ssh $EACH sudo SUSEConnect -s | egrep --color "caasp|SLES|basesystem|containers|\"Registered\"" && echo"" && echo "Press Enter for next system" && read NEXT; done`
+----
+for EACH in `cat .all_nodes`; do echo $EACH; ssh $EACH sudo SUSEConnect -s | egrep --color "caasp|SLES|basesystem|containers|\"Registered\"" && echo"" && echo "Press Enter for next system" && read NEXT; done
+----
 
 .Ensure swap is not enabled on any of the CaaS Platform hosts
-* `for EACH in `cat .all_nodes`; do echo $EACH; ssh $EACH cat /proc/swaps; echo ""; done`
+----
+for EACH in `cat .all_nodes`; do echo $EACH; ssh $EACH cat /proc/swaps; echo ""; done
+----
 ** Should return a header line for each node, but nothing else
 
 .Bootstrap the cluster
