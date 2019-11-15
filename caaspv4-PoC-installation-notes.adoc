@@ -1,5 +1,5 @@
 ### CURRENT STAGE OF THIS DOCUMENT: Rapidly changing (again), possibly incomplete, likely brittle do to lots of automation based on this specific configuration
-#### Last updated: 2019.10.14, early AM PDT
+#### Last updated: 2019.11.15, early AM PDT
 
 CAUTION: The procedure outlined in this document leverages AutoYaST. AutoYaST works slightly differently depending on if the server is configured to boot in (U)EFI mode or Legacy BIOS mode. This document attempts to provide the simplest procedures for both cases. 
 
@@ -38,6 +38,9 @@ CAUTION: This guide can be used as a reference while deploying different configu
 
 * Can be a VM, as long as it has access to the Internet and the cluster network
 * 4 vCPU, 4096MB mem, 20GB qcow2 boot drive in default libvirt location
+
+NOTE: Some platforms do not allow the first GbE network interface to be aliased to eth0. Adjust the alias as appropriate for the network interface that has access to the Internet.
+
 * Booting from ISO: Select "Installation" BUT DO NOT PRESS ENTER
 * On "Boot Options:" line: `ifcfg=eth0=172.16.241.200/24,172.16.241.254,172.16.250.2,caaspv4.com hostname=admin.caaspv4.com`
 ** Format of ifcfg=eth0 is <node IP address/cidr mask>,<default gateway>,<primary DNS server>,<search domain>
@@ -80,7 +83,9 @@ IMPORTANT: It is recommended to use a secure password that will work with all el
 
 .Finish preparing the Management workstation:
 * Enable passwordless sudo for the user sles
-** `sudo bash -c "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/01sles"`
+----
+sudo bash -c "echo 'sles ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/01sles"
+----
 * The eaisest way to insert the Management Workstation's SSH key into the AutoYaST clone file is to add it to itself before creating the clone file
 ** `ssh-keygen`
 *** Accept the defaults, though a passphrase can be configured here, if desired
@@ -138,13 +143,18 @@ WARNING: If the getent command does not return the correct IP address and fully 
 TIP: Use the command `grep ipaddr autoinst.xml` to verify the Management Workstation's IP address
 
 ** Set this variable to the Management Workstation's IP address (i.e. 172.16.241.105): `MANAGEMENTIP=""`
-** `MASTERIP=`getent hosts master | awk '{print$1}'`; sed -i "s/$MANAGEMENTIP/$MASTERIP/" master.xml`
+----
+MASTERIP=`getent hosts master | awk '{print$1}'`; sed -i "s/$MANAGEMENTIP/$MASTERIP/" master.xml
+----
 
 
 IMPORTANT: In this procedure, AutoYaST will initially install the Master Node with the same network configuration as the Management Workstation. After the installation, the network will be manually changed to the Master Node's installed configuration. That configuration will be captured and used to AutoYaST install the Worker Nodes. If the Management Workstation's installed network configuration is not compatible with the Master Node's network capabilities (i.e. the Management Workstation uses eth0 but eth0 on the Master Node is not connect to the network), it is recommended to either edit the AutoYast file to create the Master Node's installed network configuration, or install the Master Node manually. See the AutoYaST guide for more information: https://documentation.suse.com/sles/15-SP1/single-html/SLES-autoyast/#book-autoyast
 
 .Update the master.xml AutoYaST file based on architectural differences:
-* If the Master Node is a bare-metal host, run this command: `xml ed -L -d "//_:services-manager/_:services/_:enable/_:service[text()='spice-vdagentd']"  master.xml`
+* If the Master Node is a bare-metal host, run this command: 
+----
+xml ed -L -d "//_:services-manager/_:services/_:enable/_:service[text()='spice-vdagentd']"  master.xml
+----
 * If the Master Node boots in Legacy BIOS mode, run this command: `xml ed -L -u "//_:bootloader/_:loader_type" -v grub2 master.xml`
 * If the Master Node boots in (U)EFI mode, run this command: `xml ed -L -u "//_:bootloader/_:loader_type" -v grub2-efi master.xml`
 
@@ -368,7 +378,6 @@ TIP: It is recommended to fully install worker1 before continuing to the rest of
 NOTE: The following commands should be run from the Management Workstation and require a .all_nodes file that contains the fully qualified hostnames of all cluster nodes. Create this file if it doesn't already, before continuing.
  
 * `eval "$(ssh-agent)"`
-* `ssh-add /home/sles/.ssh/id_rsa`
 * `ssh-add /home/sles/.ssh/id_rsa`
 * Verify passwordless SSH and sudo capabilities for the sles user on all nodes
 ----
