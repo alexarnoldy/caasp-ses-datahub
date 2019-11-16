@@ -489,7 +489,7 @@ echo -n "AQCliWtcAAAAABAAMRgUejj5FCG/bvLBpmKDUw==" | base64
 ----
 .Example ouput: 
 QVFDbGlXdGNBQUFBQUJBQU1SZ1Vlamo1RkNHL2J2TEJwbUtEVXc9PQ==
-
+ceph auth ls  | egrep -A1 "data-hub-demo|admin"
 * Create the Ceph admin user and data-hub-demo user secrets (use the base64 encoded keys you calculated above):
 ----
 # vi ceph-secret-admin.yaml
