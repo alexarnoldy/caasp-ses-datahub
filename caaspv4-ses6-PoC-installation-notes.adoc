@@ -560,11 +560,8 @@ default:
 
 
 
+.Validate access to the Rados Gateway S3 object storage interface
 
-
-when you get to accepting salt keys, if all the host names aren't showing up as fully qualified, we need to look at it and remediate, as this will break stuff after the fact. 
-
-also, there is a bug in SLES15SP1 where if you create a bond and assign the fqdn hostname to the interface that it will lose it after the first reboot. you have to go back into yast2 and re-declare it, and then it sticks.
 
 
 
