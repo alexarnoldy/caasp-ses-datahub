@@ -176,6 +176,7 @@ ceph osd pool application get ${CephPool}
 
 .Create the user that will manage the pool
 
+
 TIP: Use the command `ceph auth ls | grep data-hub-demo` to ensure the user hasn't already been created. If it has, skip this step and continue onto "Gather the keys for the SES admin and data-hub-demo users"
 
 ----
