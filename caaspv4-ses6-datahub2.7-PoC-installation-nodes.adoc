@@ -162,10 +162,10 @@ EOF
 
 NOTE: Perform the next set of commands from the SES Administrative Workstation for a standard SES installation or from inside the rook-ceph-tools pod for a Rook managed SES cluster.
 
+
+TIP: Use the command `ceph -s | grep osds` to find the number of OSDS in your ceph cluster. Use that information with the ceph osd calculator (https://ceph.com/pgcalc/) to get the number of Placement Groups "Suggested PG Count" that will be appropriate for the pool (CephPGSize)
+
 .Create the Data Hub SES (Ceph) storage pool and enable RBD support
-
-TIP: Use the ceph osd calculator (https://ceph.com/pgcalc/) to get the number of Placement Groups for the pool (CephPGSize)
-
 ----
 export CephPool="data-hub-demo-pool" CephPGSize="16"
 ceph osd pool create ${CephPool} ${CephPGSize}
@@ -297,6 +297,7 @@ EOF
 `kubectl get pvc`
 * Delete the PVC after it has shown to be Bound:
 `kubectl delete -n data-hub -f test-pvc.yaml`
+
 
 
 
