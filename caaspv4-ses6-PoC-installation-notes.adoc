@@ -1,5 +1,5 @@
 ### CURRENT STAGE OF THIS DOCUMENT: Rapidly changing, highly incomplete, based on a four node configuration, though only three nodes are available at the time of this writing, likely brittle do to lots of automation based on this specific configuration.
-#### Last updated: 2019.10.16, late AM PDT
+#### Last updated: 2019.11.17, early AM PDT
 
 #### Things to fix in this document:
 * Need to link CaaSPv4 doc at the end
