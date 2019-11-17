@@ -575,8 +575,17 @@ NOTE: This username for the Rados Gateway user can the be same as a Ceph user bu
 
 NOTE: Take note of the access_key and secret_key. They will be needed to access the S3 gateway. `radosgw-admin user info --uid=${RGWUser} | grep -A1 access_key` can be used to retrieve the keys at any time.
 
+.Take note of the DNS FQDN and port for the Rados Gateway
 
+`grep rgw /etc/ceph/ceph.conf`
+* The "rgw frontends" line shoud include `port=` to indicate if the gateway must be access with HTTP (port=80), or HTTPS (port=443)
 
+.Use the s3cmd utility to access the S3 gateway
+
+* Install the s3cmd utility on the SES6 Administrative Workstation or another SLES/openSUSE system external to the cluster
+** Go to `https://build.opensuse.org/package/show/Cloud:Tools/s3cmd`
+** Click on the appropriate version of SLES/openSUSE in the column on the right 
+** Click on the `Download` link for the "noarch.rpm" package
 
 
 
