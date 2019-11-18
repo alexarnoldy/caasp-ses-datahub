@@ -596,7 +596,18 @@ sudo pip install s3cmd
 ----
 
 .Use the s3cmd utility to access the S3 gateway
+* Run the `s3cmd --configure` operation with the following options:
+** Provide the `Access Key` and `Secret Key` for the data-hub-demo user
+** Press Enter to skip the `Default Region` option
+** Provide the FQDN for the Rados Gateway for the `S3 Endpoint` option
+** Enter `%(bucket)s.` and the FQDN for the Rados Gateway for the `DNS-style bucket+hostname`
+** Press Enter to skip the `Encryption password` and `Path to GPG program` options
+** Enter "No" for the `Use HTTPS protocol` option if "rgw frontends" in the ceph.confg file referred to port 80
+** Press Enter to skip the `HTTP Proxy server name` option
+** Enter "y" to `Test access with supplied credentials?`
+** Enter "y" to `Save settings?`, even if the credential test failed.
 
+CAUTION: If the credential test failed, it could be due to specifying HTTP when the gateway will only accept HTTPS, or that the Access Key and or Secret Key are incorrect. This test does not verify that DNS is set up correctly to resolve bucket names to the Rados Gateway.
 
 
 
