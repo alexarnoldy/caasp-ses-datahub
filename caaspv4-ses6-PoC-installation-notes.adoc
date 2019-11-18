@@ -580,12 +580,23 @@ NOTE: Take note of the access_key and secret_key. They will be needed to access 
 `grep rgw /etc/ceph/ceph.conf`
 * The "rgw frontends" line shoud include `port=` to indicate if the gateway must be access with HTTP (port=80), or HTTPS (port=443)
 
-.Use the s3cmd utility to access the S3 gateway
+.Install the s3cmd utility on the SES6 Administrative Workstation or another SLES/openSUSE system external to the cluster
+** Go to `https://software.opensuse.org/package/s3cmd?search_term=s3cmd`
+** Download the s3cmd.ymp file for the appropriate O/S and distribution from either experimental packages or community packages
+
+NOTE: The s3cmd utility is not supported by SUSE and thus cannot be guaranteed to be free of defects and/or malware. Use caution when installing non-supported software into a production or other higly valuable environment.
 
 * Install the s3cmd utility on the SES6 Administrative Workstation or another SLES/openSUSE system external to the cluster
-** Go to `https://build.opensuse.org/package/show/Cloud:Tools/s3cmd`
-** Click on the appropriate version of SLES/openSUSE in the column on the right 
-** Click on the `Download` link for the "noarch.rpm" package
+* Ensure the python3-pip package is installed, `sudo zypper info python3-pip`, if not install it: `sudo zypper -n install python3-pip`
+* Download and install s3cmd:
+----
+wget -O s3cmd-latest.zip https://sourceforge.net/projects/s3tools/files/latest/download
+cd s3cmd-*
+sudo pip install s3cmd
+----
+
+.Use the s3cmd utility to access the S3 gateway
+
 
 
 
