@@ -607,7 +607,7 @@ sudo pip install s3cmd
 ** Enter "y" to `Test access with supplied credentials?`
 ** Enter "y" to `Save settings?`, even if the credential test failed.
 
-CAUTION: If the credential test failed, it could be due to specifying HTTP when the gateway will only accept HTTPS, or that the Access Key and or Secret Key are incorrect. This test does not verify that DNS is set up correctly to resolve bucket names to the Rados Gateway. An example of the DNS entry needed in the /var/lib/named/master/<zone> file to resolve bucket names would be `*.rados-gateway         IN CNAME        rados-gateway.ses.lab.`. Take note of the trailing dot in the value field.
+CAUTION: If the credential test failed, it could be due to specifying HTTP when the gateway will only accept HTTPS, or that the Access Key and or Secret Key are incorrect. This test does not verify that DNS is set up correctly to resolve bucket names to the Rados Gateway. An example of the entry needed in the DNS server's /var/lib/named/master/<zone> file to resolve bucket names would be `*.rados-gateway         IN CNAME        rados-gateway.ses.lab.`. Take note of the trailing dot in the value field and that named.service must be restarted after manually adding the entry.
 
 
 
