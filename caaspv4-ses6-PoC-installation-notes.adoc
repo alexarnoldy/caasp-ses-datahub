@@ -616,6 +616,17 @@ CAUTION: If the credential test failed, it could be due to specifying HTTP when 
 
 NOTE: An example of the entry needed in the DNS server's /var/lib/named/master/<zone> file to resolve bucket names would be `*.rados-gateway         IN CNAME        rados-gateway.ses.lab.`. Take note of the trailing dot in the value field and that named.service must be restarted after manually adding the entry.
 
+.Create the bucket for the Vora checkpoint store
+
+* `s3cmd mb s3://vora-checkpoint-store`
+** The command should respond with Bucket created
+* Create a test file to put into the bucket: `echo test > test-file.txt`
+* Put the file into the vora-checkpoint-store bucket: `s3cmd put test-file.txt s3://vora-checkpoint-store`
+* Verify the file is in the bucket: `s3cmd ls s3://vora-checkpoint-store`
+
+
+
+
 
 
 
