@@ -605,7 +605,7 @@ cd s3cmd-?.*
 
 .Use the s3cmd utility to access the S3 gateway
 * Run the `s3cmd --configure` operation with the following options:
-** Provide the `Access Key` and `Secret Key` for the data-hub-demo user
+** Provide the `Access Key` and `Secret Key`, without quotes, for the data-hub-demo user
 ** Press Enter to skip the `Default Region` option
 ** Provide the FQDN for the Rados Gateway for the `S3 Endpoint` option
 ** Enter `%(bucket)s.` and the FQDN for the Rados Gateway for the `DNS-style bucket+hostname`
@@ -622,7 +622,7 @@ CAUTION: If the credential test failed, it could be due to specifying HTTP when 
 ** For example, if the Rados Gateway is `rados-gateway.ses.lab`, execute the command `getent hosts vora-checkpoint-store.rados-gateway.ses.lab`
 *** This should resolve to the same IP address as `rados-gateway.ses.lab`
 
-NOTE: An example of the entry needed in the DNS server's /var/lib/named/master/<zone> file to resolve bucket names would be `*.rados-gateway         IN CNAME        rados-gateway.ses.lab.`. Take note of the trailing dot in the value field and that named.service must be restarted after manually adding the entry.
+NOTE: An example of the entry needed in the DNS server's /var/lib/named/master/<zone> file to resolve bucket names would be `*.rados-gateway         IN CNAME        rados-gateway.ses.lab.`   Take note of the trailing dot in the value field and that named.service must be restarted after manually adding the entry.
 
 .Create the bucket for the Vora checkpoint store
 
