@@ -568,10 +568,10 @@ NOTE: This username for the Rados Gateway user can the be same as a Ceph user bu
 
 * `export RGWUser="data-hub-demo"`
 ** Ensure the username does not already exist
-`radosgw-admin user list | grep ${RGWUser}`
+* `radosgw-admin user list | grep ${RGWUser}`
 ** Create the user
-`radosgw-admin user create --uid=${RGWUser} --display-name=${RGWUser} | grep -A1 access_key`
-*** The output should be the access_key and secret_key for the user
+* `radosgw-admin user create --uid=${RGWUser} --display-name=${RGWUser} | grep -A1 access_key`
+** The output should be the access_key and secret_key for the user
 
 NOTE: Take note of the access_key and secret_key. They will be needed to access the S3 gateway. `radosgw-admin user info --uid=${RGWUser} | grep -A1 access_key` can be used to retrieve the keys at any time.
 
