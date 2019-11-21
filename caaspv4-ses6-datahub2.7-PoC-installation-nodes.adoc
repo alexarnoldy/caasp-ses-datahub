@@ -298,6 +298,18 @@ EOF
 * Delete the PVC after it has shown to be Bound:
 `kubectl delete -n data-hub -f test-pvc.yaml`
 
+* If any master or worker nodes have less than 32GB, it is recommended to reboot each, in turn, before starting the installation to ensure they have the maximume amount of available memory for the installation.
+
+* Verify that Python2.7 is installed
+`sudo SUSEConnect --product sle-module-python2/15.1/x86_64`
+`sudo zypper -n install python`
+`sudo zypper -n install python2-PyYAML`
+
+
+* Run the SAP Data Hub installation script:
+----
+./install.sh -e vora-cluster.components.dlog.replicationFactor="1" -e vora-cluster.components.dlog.standbyFactor="0" -e vora-context-deploy.secop.profile=notls  --enable-kaniko yes --image-pull-secret dhregistry-secret --pv-storage-class ses-rbd-sc --accept-license --namespace data-hub --registry dhregistry.example.com --skip-preflight-checks --enable-checkpoint-store no
+----
 
 
 
