@@ -566,7 +566,7 @@ NOTE: This username for the Rados Gateway user can the be same as a Ceph user bu
 
 .Create the RGW user that will access the object storage 
 
-`export RGWUser="data-hub-demo"`
+* `export RGWUser="data-hub-demo"`
 ** Ensure the username does not already exist
 `radosgw-admin user list | grep ${RGWUser}`
 ** Create the user
