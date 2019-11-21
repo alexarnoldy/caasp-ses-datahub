@@ -593,12 +593,15 @@ Doesn't work if you don't have the browser running on the target system
 NOTE: The s3cmd utility is not supported by SUSE and thus cannot be guaranteed to be free of defects and/or malware. Use caution when installing non-supported software into a production or other higly valuable environment.
 
 * Ensure the python3-pip package is installed, `sudo zypper info python3-pip`, if not install it: `sudo zypper -n install python3-pip`
-* Download and install s3cmd:
-----
+* Install s3cmd: `sudo pip install s3cmd`
+
+////
+This is the method to get s3cmd as a static utility
 wget -O s3cmd-latest.zip https://sourceforge.net/projects/s3tools/files/latest/download
-cd s3cmd-*
-sudo pip install s3cmd
-----
+unzip s3cmd-latest.zip
+cd s3cmd-?.*
+"Move "s3cmd" file and "S3" subdirectory to some other path. Make sure that "S3" subdirectory ends up in the same place where you move the "s3cmd" file. "
+////
 
 .Use the s3cmd utility to access the S3 gateway
 * Run the `s3cmd --configure` operation with the following options:
