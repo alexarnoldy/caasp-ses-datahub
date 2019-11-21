@@ -581,7 +581,9 @@ NOTE: Take note of the access_key and secret_key. They will be needed to access 
 * The "rgw frontends" line shoud include `port=` to indicate if the gateway must be access with HTTP (port=80), or HTTPS (port=443)
 
 .Install the s3cmd utility on the SES6 Administrative Workstation or another SLES/openSUSE system external to the cluster
-* 
+----
+----
+ 
 ////
 Doesn't work if you don't have the browser running on the target system
 ** Go to `https://software.opensuse.org/package/s3cmd?search_term=s3cmd`
