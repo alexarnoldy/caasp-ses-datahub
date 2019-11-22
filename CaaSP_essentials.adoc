@@ -1,0 +1,9 @@
+
+
+.Troubleshooting:
+* The scripts supportconfig uses to gather logs for specific functions, i.e. Dex, etcd, Cilium are shown here: `https://documentation.suse.com/suse-caasp/4/single-html/caasp-admin/#_log_collection`
+
+
+
+
+// vim: set syntax=asciidoc:
