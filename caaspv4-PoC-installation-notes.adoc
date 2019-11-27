@@ -209,6 +209,8 @@ CAUTION: The following steps assume that the first drive to be probed is the Mas
 ----
 ** Update MY_EMAIL_ADDRESS with the correct email address and MY_CAASP_REGCODE with your registration code
 
+NOTE: A full list of extensions can be found at: https://github.com/yast/yast-registration/wiki/Available-SCC-Extensions-for-Use-in-Autoyast
+
 ////
 * Create the XML block to register CaaS Platform 4.0 (doesn't work yet)
 ----
