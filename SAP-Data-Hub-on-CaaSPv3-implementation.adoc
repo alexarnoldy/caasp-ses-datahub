@@ -124,7 +124,8 @@ TIP: Use the ceph osd calculator (https://ceph.com/pgcalc/) to get the number of
 NOTE: Run the following five commands from just one physical host
 
 ----
-export CephPool="data-hub-infra-pool" CephPGSize="16"
+export CephPool="data-hub-infra-pool" 
+export CephPGSize="16"
 ceph osd pool create ${CephPool} ${CephPGSize}
 ceph osd pool ls
 ceph osd pool application enable ${CephPool} rbd
@@ -136,19 +137,29 @@ ceph osd pool application get ${CephPool}
 NOTE: Run the following two commands on each physical host
 
 ----
-export Host=`hostname` CephPool="data-hub-infra-pool"
-rbd create -s 512G ${CephPool}/${Host}
+export Host=${hostname} 
+export CephPool="data-hub-infra-pool"
+export Size=""		#Size of the pool ending with T,B, or M
+rbd create -s ${Size} ${CephPool}/${Host}
 ----
 
 [[anchor-20]]
 ==== Map and mount the RBD images on each physical host
 
-* Mount the new RBD image to the host and cause it to remount during system boot
+NOTE: This step will mount the new RBD image to the host and cause it to remount during system boot
 
-NOTE: Run the following eight commands on each physical host 
+NOTE: Run the following commands on each physical host 
 
+* Ensure the ceph-common software is installed on the host: `sudo zypper --non-interactive install ceph-common`
+
+* Set these variables as needed:
 ----
-export Host=`hostname` CephPool="data-hub-infra-pool" CephUser="data-hub-infra"
+export CephPool="data-hub-infra-pool" 
+export CephUser="data-hub-infra"
+export Host=$(hostname)
+----
+* Execute these commands:
+----
 sudo cp -np /etc/ceph/rbdmap /etc/ceph/rbdmap.`date +"%d.%b.%Y.%H.%M"` && ls -1 /etc/ceph/rbdmap.*
 sudo bash -c "echo ${CephPool}/${Host}'      'id=${CephUser},keyring=/etc/ceph/ceph.client.${CephUser}.keyring >> /etc/ceph/rbdmap"
 sudo cp -np /etc/fstab /etc/fstab.`date +"%d.%b.%Y.%H.%M"` && ls -1 /etc/fstab.*

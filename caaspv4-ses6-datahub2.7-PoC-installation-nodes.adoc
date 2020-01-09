@@ -249,7 +249,9 @@ NOTE: This procedure does not yet include a method for gathering IP addresses fo
 * Set the MONITORS variable to include the IP addresses and ports for the SES monitor nodes:
 ----
 MONITORS=`ssh $SSH_SES_ADMIN "grep mon_host /etc/ceph/ceph.conf" | awk -F" = " '{print$2}' | sed 's/\, /:6789\,/g' | sed 's/$/:6789/'`
+echo $MONITORS
 ----
+** The output should be similar to: `172.29.147.41:6789,172.29.147.40:6789,172.29.147.42:6789`
 
 * Create the SES6 storage class
 ----
