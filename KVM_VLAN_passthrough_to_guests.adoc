@@ -1,6 +1,9 @@
-#### CURRENT STATE OF THIS DOCUMENT: Lots of errors, needs to show how to do this with `yast lan` as it's much easier and persistent
+#### CURRENT STATE OF THIS DOCUMENT: Needs refining and clarification. Needs to show how to do this with `yast lan` as it's much easier and persistent
 
-* Description says that if VLANs are specifed on the host, the tags will be stripped off, before the packet is directed to that VLAN virtual interface
+##### This doc shows how to allow VLAN tags to be passed up to the VM.
+* This useful when software explicitly requires VLANs to function correctly, when testing a bare-metal design that relies on VLANs, and when addressing multiple VLANs from the VM, while only having host one bridge for network access
+
+* One description I read says that if VLANs are specifed on the host, the tags will be stripped off, before the packet is directed to that VLAN virtual interface
 * Host NIC cannot be in any bridges
 ** Need to test to see if a host IP can be applied to the bridge after it has been created
 ** Need to test to see if the bridge can be built on top of a bond
@@ -53,15 +56,15 @@ net.bridge.bridge-nf-filter-vlan-tagged = 0
 
 `sudo ip link set $BRIDGE.$VLAN up`
 
-////`sudo ifconfig $BRIDGE.$VLAN up`
+`sudo ifconfig $BRIDGE.$VLAN up`
 
 `sudo brctl addif $BRIDGE $HOST_INTERFACE`
 
 `sudo ifconfig $HOST_INTERFACE up`
 
-* Use virt-manager to add a new network device with "Specify shared device name", then type `br0`
+* Use virt-manager to add a new network device with "Specify shared device name", then type `br240`
 
-* When the VM boots up, it will have a single NIC, which is untagged o the native VLAN
+* When the VM boots up, it will have a single NIC, which is untagged to the native VLAN
 ** Use `yast lan` to add VLAN241 and assign an IP address
 
 .Adding more VLANs to the bridge:
