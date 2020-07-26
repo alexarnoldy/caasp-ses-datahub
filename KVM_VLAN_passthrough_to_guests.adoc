@@ -79,7 +79,16 @@ net.bridge.bridge-nf-filter-vlan-tagged = 0
 
 `ifconfig $BRIDGE.$VLAN up`
 
+////
+This didn't work. Seems like wicked gets unstable when changes are made outside of yast
+#### Creating VLANs and bridges without yast:
 
+.NOTES
+* `sudo ip link add link bond0 name vlan242 type vlan id 242`
+* `sudo ip link add name br242 type bridge`
+* `sudo ip link set vlan242 master br242`
+* `sudo ip addr add 172.16.242.104/24 dev br242`
+////
 
 
 
