@@ -88,7 +88,7 @@ NOTE: Run the following four commands on each physical host
 
 ----
 sudo zypper -n install ceph-common
-export SESAdminNode=""  # Set this variable to the FQDN or IP of the SES admin node
+export SESAdminNode=""  # Set this variable to user name and the FQDN or IP of the SES admin node, i.e. geeko@ses-admin.suse.lab
 sudo bash -c "scp ${SESAdminNode}:/etc/ceph/ceph.client.admin.keyring /etc/ceph"
 sudo bash -c "scp ${SESAdminNode}:/etc/ceph/ceph.conf /etc/ceph"
 ----
@@ -111,7 +111,7 @@ Seems like this is no longer needed
 NOTE: Run the following two commands from each physical host:
 
 ----
-export CephUser="data-hub-infra" SESAdminNode=""  # Set this variable to the FQDN or IP of the SES admin node
+export CephUser="data-hub-infra" SESAdminNode=""  # Set this variable to user name and the FQDN or IP of the SES admin node, i.e. geeko@ses-admin.suse.lab
 sudo bash -c "scp ${SESAdminNode}:/etc/ceph/ceph.client.${CephUser}.keyring /etc/ceph"
 ----
 ////
@@ -137,7 +137,7 @@ ceph osd pool application get ${CephPool}
 NOTE: Run the following two commands on each physical host
 
 ----
-export Host=${hostname} 
+export Host=$(hostname) 
 export CephPool="data-hub-infra-pool"
 export Size=""		#Size of the pool ending with T,B, or M
 rbd create -s ${Size} ${CephPool}/${Host}
